@@ -13,6 +13,7 @@ use App\Services\PostService;
 use App\Services\SearchService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -63,6 +64,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Fix MySQL key length issue
+        Schema::defaultStringLength(191);
+        
         Event::listen(
             CommentCreated::class,
             SendCommentNotification::class,

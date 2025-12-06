@@ -25,6 +25,9 @@ export default defineConfig({
             '@': resolve(__dirname, 'resources/js'),
         },
     },
+    optimizeDeps: {
+        include: ['shiki'],
+    },
     server: {
         host: '0.0.0.0',
         port: 5173,

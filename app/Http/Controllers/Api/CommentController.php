@@ -153,4 +153,48 @@ class CommentController extends Controller
             ], 422);
         }
     }
+
+    /**
+     * Store a new inline comment for a post.
+     */
+    public function storeInlineComment(StoreCommentRequest $request, string $id): JsonResponse
+    {
+        try {
+            $data = $request->validated();
+            $data['post_id'] = (int) $id;
+            $data['is_inline'] = true;
+
+            $result = $this->commentService->createComment($data, $request->user()->id);
+
+            return response()->json([
+                'data' => new CommentResource($result['comment']),
+                'message' => 'Inline comment created successfully',
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create inline comment',
+                'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Update an inline comment.
+     */
+    public function updateInlineComment(StoreCommentRequest $request, string $id): JsonResponse
+    {
+        try {
+            $result = $this->commentService->updateComment((int) $id, $request->validated(), $request->user()->id);
+
+            return response()->json([
+                'data' => new CommentResource($result['comment']),
+                'message' => 'Inline comment updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update inline comment',
+                'error' => $e->getMessage(),
+            ], 403);
+        }
+    }
 }

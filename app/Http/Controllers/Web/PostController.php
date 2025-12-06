@@ -56,8 +56,10 @@ class PostController extends Controller
             abort(404);
         }
 
+        $postResource = new \App\Http\Resources\PostResource($result['post']);
+        
         return Inertia::render('Posts/Show', [
-            'post' => $result['post'],
+            'post' => $postResource->resolve(request()),
         ]);
     }
 

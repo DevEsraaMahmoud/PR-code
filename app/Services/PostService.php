@@ -101,6 +101,17 @@ class PostService
             return null;
         }
 
+        // Ensure all relationships are loaded
+        if (!$post->relationLoaded('snippets')) {
+            $post->load('snippets.allComments.user', 'snippets.allComments.replies.user');
+        }
+        if (!$post->relationLoaded('comments')) {
+            $post->load('comments.user', 'comments.replies.user');
+        }
+        if (!$post->relationLoaded('allComments')) {
+            $post->load('allComments.user', 'allComments.replies.user');
+        }
+
         return [
             'post' => $post,
         ];

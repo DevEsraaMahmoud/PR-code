@@ -44,26 +44,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import Prism from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css';
-
-// Import language definitions
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-php';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-go';
-import 'prismjs/components/prism-rust';
-import 'prismjs/components/prism-ruby';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-yaml';
-import 'prismjs/components/prism-bash';
+import Prism from '@/utils/prism-init';
 
 const props = defineProps<{
     codeText: string;
@@ -120,8 +101,47 @@ const openCommentModal = () => {
 
 const highlightCode = async () => {
     await nextTick();
-    if (codeElement.value) {
-        Prism.highlightElement(codeElement.value);
+    if (!codeElement.value || !Prism) return;
+    
+    try {
+        let language = (props.language || 'text').toLowerCase();
+        const preElement = codeElement.value;
+        const codeEl = preElement.querySelector('code');
+        
+        if (!codeEl) return;
+        
+        // Normalize common language aliases
+        const languageMap: Record<string, string> = {
+            'js': 'javascript',
+            'ts': 'typescript',
+            'py': 'python',
+            'rb': 'ruby',
+            'sh': 'bash',
+            'yml': 'yaml',
+        };
+        language = languageMap[language] || language;
+        
+        // Ensure the pre element has the language class
+        preElement.className = preElement.className.replace(/language-\w+/g, '');
+        preElement.classList.add(`language-${language}`);
+        
+        // Check if language is registered
+        if (!Prism.languages || !Prism.languages[language]) {
+            // Language not registered, just display plain text
+            return;
+        }
+        
+        // Use Prism.highlight directly instead of highlightElement to avoid hook issues
+        if (typeof Prism.highlight === 'function') {
+            const code = codeEl.textContent || '';
+            codeEl.innerHTML = Prism.highlight(code, Prism.languages[language], language);
+        } else if (typeof Prism.highlightElement === 'function') {
+            // Fallback to highlightElement only if highlight is not available
+            Prism.highlightElement(codeEl);
+        }
+    } catch (error) {
+        console.warn('Prism highlighting error:', error);
+        // Fallback: just display the code as-is
     }
 };
 

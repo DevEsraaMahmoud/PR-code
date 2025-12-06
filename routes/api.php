@@ -43,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
     Route::post('/comments/{id}/like', [CommentController::class, 'toggleLike']);
     
+    // Note: Inline comments moved to web routes - use /posts/{id}/inline-comments instead
+    
     // Broadcasting auth
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
 

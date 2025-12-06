@@ -44,6 +44,7 @@
                             :key="index"
                             :block="block"
                             :index="index"
+                            :blocks="form.body"
                             @update="updateBlock"
                             @remove="removeBlock"
                         />

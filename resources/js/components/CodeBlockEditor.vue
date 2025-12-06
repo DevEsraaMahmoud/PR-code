@@ -5,7 +5,7 @@
                 {{ block.type === 'code' ? 'Code Block' : 'Text Block' }}
             </span>
             <button
-                v-if="blocks.length > 1"
+                v-if="blocks && blocks.length > 1"
                 type="button"
                 @click="$emit('remove', index)"
                 class="text-red-600 hover:text-red-700 text-sm"

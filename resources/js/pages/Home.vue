@@ -51,7 +51,7 @@
             </div>
 
             <!-- Posts Grid -->
-            <div v-if="posts.length === 0" class="text-center py-16">
+            <div v-if="!posts || posts.length === 0" class="text-center py-16">
                 <div class="text-gray-400 mb-4">
                     <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -61,32 +61,11 @@
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div
-                    v-for="post in posts"
+                <PostCard
+                    v-for="post in normalizedPosts"
                     :key="post.id"
-                    class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer transform hover:-translate-y-1"
-                    @click="$inertia.visit(`/posts/${post.id}`)"
-                >
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                            {{ post.title }}
-                        </h3>
-                        <div class="flex items-center text-sm text-gray-500 mb-4">
-                            <span>{{ post.user.name }}</span>
-                            <span class="mx-2">•</span>
-                            <span>{{ formatDate(post.created_at) }}</span>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <span
-                                v-for="snippet in post.snippets"
-                                :key="snippet.id"
-                                class="px-2 py-1 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 text-xs font-medium rounded-md border border-blue-100"
-                            >
-                                {{ snippet.language }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                    :post="post"
+                />
             </div>
         </div>
     </AppLayout>
@@ -94,12 +73,56 @@
 
 <script setup lang="ts">
 import AppLayout from '@/Layouts/AppLayout.vue';
+import PostCard from '@/Components/PostCard.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-defineProps<{
-    posts: any[];
+const props = defineProps<{
+    posts?: any[] | null;
 }>();
+
+const posts = computed(() => props.posts || []);
+
+// Normalize posts to match PostCard component expected format
+const normalizedPosts = computed(() => {
+    return posts.value.map((post: any) => {
+        // Extract code from snippets if available
+        const code = post.snippets && post.snippets.length > 0 
+            ? {
+                language: post.snippets[0].language || 'text',
+                content: post.snippets[0].content || ''
+            }
+            : null;
+
+        // Extract body HTML from body blocks if available
+        const bodyHtml = Array.isArray(post.body) 
+            ? post.body
+                .filter((block: any) => block.type === 'text')
+                .map((block: any) => block.content)
+                .join('\n\n')
+            : (post.body_html || post.body || '');
+
+        return {
+            id: post.id,
+            author: {
+                id: post.user?.id || post.author?.id,
+                name: post.user?.name || post.author?.name || 'Unknown',
+                avatar_url: post.user?.avatar_url || post.author?.avatar_url,
+                handle: post.user?.handle || post.author?.handle,
+            },
+            title: post.title,
+            body: bodyHtml,
+            body_html: bodyHtml,
+            code: code,
+            stats: {
+                likes: post.likes_count || post.stats?.likes || 0,
+                comments: post.comments_count || post.stats?.comments || 0,
+                views: post.views || post.stats?.views || 0,
+            },
+            created_at: post.created_at,
+        };
+    });
+});
 
 const searchQuery = ref('');
 const selectedLanguage = ref('');
@@ -112,11 +135,6 @@ const search = () => {
         preserveState: true,
         preserveScroll: true,
     });
-};
-
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 </script>
 

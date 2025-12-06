@@ -15,13 +15,43 @@ class PostRepository
 
     public function find(int $id): ?Post
     {
-        return Post::with(['user', 'snippets', 'tags', 'snippets.comments.user', 'snippets.comments.replies.user', 'comments.user', 'comments.replies.user'])
+        return Post::with([
+            'user',
+            'snippets' => function ($query) {
+                $query->orderBy('block_index');
+            },
+            'snippets.allComments' => function ($query) {
+                $query->with(['user', 'replies.user'])->orderBy('start_line');
+            },
+            'tags',
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')->with(['user', 'replies.user'])->orderBy('created_at');
+            },
+            'allComments' => function ($query) {
+                $query->with(['user', 'replies.user']);
+            },
+        ])
             ->find($id);
     }
 
     public function findBySlug(string $slug): ?Post
     {
-        return Post::with(['user', 'snippets', 'tags', 'snippets.comments.user', 'snippets.comments.replies.user', 'comments.user', 'comments.replies.user'])
+        return Post::with([
+            'user',
+            'snippets' => function ($query) {
+                $query->orderBy('block_index');
+            },
+            'snippets.allComments' => function ($query) {
+                $query->with(['user', 'replies.user'])->orderBy('start_line');
+            },
+            'tags',
+            'comments' => function ($query) {
+                $query->whereNull('parent_id')->with(['user', 'replies.user'])->orderBy('created_at');
+            },
+            'allComments' => function ($query) {
+                $query->with(['user', 'replies.user']);
+            },
+        ])
             ->where('slug', $slug)
             ->first();
     }

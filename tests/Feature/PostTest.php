@@ -67,6 +67,10 @@ class PostTest extends TestCase
                     'id',
                     'title',
                     'body',
+                    'user',
+                    'snippets',
+                    'comments',
+                    'inline_comments_index',
                 ],
             ]);
     }

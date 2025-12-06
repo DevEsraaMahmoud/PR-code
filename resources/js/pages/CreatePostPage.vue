@@ -40,6 +40,7 @@
                         :key="index"
                         :block="block"
                         :index="index"
+                        :blocks="blocks"
                         @update="updateBlock"
                         @remove="removeBlock"
                     />
