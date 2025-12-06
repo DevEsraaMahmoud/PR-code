@@ -11,7 +11,7 @@ class StorePostRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization handled by middleware
+        return true; // Authorization handled by middleware and policies
     }
 
     /**
@@ -27,6 +27,10 @@ class StorePostRequest extends FormRequest
             'body.*.type' => ['required', 'string', 'in:text,code'],
             'body.*.content' => ['required', 'string'],
             'body.*.language' => ['required_if:body.*.type,code', 'string', 'nullable'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:50'],
+            'visibility' => ['nullable', 'string', 'in:public,private,unlisted'],
+            'meta' => ['nullable', 'array'],
         ];
     }
 }

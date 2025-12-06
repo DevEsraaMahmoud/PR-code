@@ -17,34 +17,55 @@ class CommentController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Display comments for a post or snippet.
      */
     public function index(Request $request): JsonResponse
     {
+        $postId = $request->query('post_id');
         $snippetId = $request->query('snippet_id');
+        $perPage = (int) ($request->query('per_page', 20));
 
-        if (!$snippetId) {
-            return response()->json([
-                'message' => 'snippet_id is required',
-            ], 422);
+        if ($postId) {
+            try {
+                $result = $this->commentService->getCommentsByPost((int) $postId, $perPage);
+                return response()->json([
+                    'data' => CommentResource::collection($result['comments']),
+                    'meta' => [
+                        'current_page' => $result['comments']->currentPage(),
+                        'last_page' => $result['comments']->lastPage(),
+                        'per_page' => $result['comments']->perPage(),
+                        'total' => $result['comments']->total(),
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => 'Failed to fetch comments',
+                    'error' => $e->getMessage(),
+                ], 404);
+            }
         }
 
-        try {
-            $result = $this->commentService->getCommentsBySnippet((int) $snippetId);
-
-            return response()->json([
-                'data' => CommentResource::collection($result['comments']),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to fetch comments',
-                'error' => $e->getMessage(),
-            ], 404);
+        if ($snippetId) {
+            try {
+                $result = $this->commentService->getCommentsBySnippet((int) $snippetId);
+                return response()->json([
+                    'data' => CommentResource::collection($result['comments']),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => 'Failed to fetch comments',
+                    'error' => $e->getMessage(),
+                ], 404);
+            }
         }
+
+        return response()->json([
+            'message' => 'post_id or snippet_id is required',
+        ], 422);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created comment (inline or regular).
      */
     public function store(StoreCommentRequest $request): JsonResponse
     {
@@ -68,9 +89,9 @@ class CommentController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        // Not needed for MVP, but keeping for API consistency
+        // Not typically needed, but keeping for API consistency
         return response()->json([
-            'message' => 'Use index with snippet_id parameter',
+            'message' => 'Use index with post_id or snippet_id parameter',
         ], 400);
     }
 
@@ -110,6 +131,26 @@ class CommentController extends Controller
                 'message' => 'Failed to delete comment',
                 'error' => $e->getMessage(),
             ], 403);
+        }
+    }
+
+    /**
+     * Toggle like on a comment.
+     */
+    public function toggleLike(Request $request, string $id): JsonResponse
+    {
+        try {
+            $result = $this->commentService->toggleLike((int) $id, $request->user()->id);
+
+            return response()->json([
+                'data' => $result,
+                'message' => $result['liked'] ? 'Comment liked' : 'Comment unliked',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to toggle like',
+                'error' => $e->getMessage(),
+            ], 422);
         }
     }
 }

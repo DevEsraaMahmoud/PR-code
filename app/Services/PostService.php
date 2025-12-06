@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Events\PostCreated;
+use App\Models\Tag;
 use App\Repositories\PostRepository;
 use App\Repositories\SnippetRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PostService
 {
@@ -19,15 +22,28 @@ class PostService
     public function createPost(array $data, int $userId): array
     {
         return DB::transaction(function () use ($data, $userId) {
-            // Extract snippets from body blocks
+            // Extract snippets and tags from data
             $body = $data['body'];
+            $tags = $data['tags'] ?? [];
+            $visibility = $data['visibility'] ?? 'public';
             $snippets = [];
+
+            // Generate slug from title
+            $slug = Str::slug($data['title']);
+            $originalSlug = $slug;
+            $count = 1;
+            while (\App\Models\Post::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
 
             // Create post
             $post = $this->postRepository->create([
                 'user_id' => $userId,
                 'title' => $data['title'],
+                'slug' => $slug,
                 'body' => $body,
+                'visibility' => $visibility,
+                'meta' => $data['meta'] ?? null,
             ]);
 
             // Process body blocks and create snippets
@@ -50,6 +66,19 @@ class PostService
                 $this->snippetRepository->createMany($snippets);
             }
 
+            // Attach tags
+            if (!empty($tags)) {
+                $tagIds = [];
+                foreach ($tags as $tagName) {
+                    $tag = Tag::firstOrCreate(
+                        ['name' => $tagName],
+                        ['slug' => Str::slug($tagName)]
+                    );
+                    $tagIds[] = $tag->id;
+                }
+                $post->tags()->sync($tagIds);
+            }
+
             // Clear trending cache
             Cache::forget('trending_posts');
 
@@ -62,9 +91,11 @@ class PostService
         });
     }
 
-    public function getPost(int $id): ?array
+    public function getPost(int|string $idOrSlug): ?array
     {
-        $post = $this->postRepository->find($id);
+        $post = is_numeric($idOrSlug)
+            ? $this->postRepository->find((int) $idOrSlug)
+            : $this->postRepository->findBySlug($idOrSlug);
 
         if (!$post) {
             return null;
@@ -75,24 +106,41 @@ class PostService
         ];
     }
 
-    public function getAllPosts(): array
+    public function getAllPosts(int $perPage = 15, ?string $visibility = 'public'): LengthAwarePaginator
     {
-        return [
-            'posts' => $this->postRepository->getAll(),
-        ];
+        return $this->postRepository->paginate($perPage, $visibility);
     }
 
-    public function searchPosts(string $query, ?string $language = null): array
+    public function searchPosts(string $query, ?string $language = null, ?array $tags = null, int $perPage = 15): LengthAwarePaginator|array
     {
-        if ($language) {
-            $posts = $this->postRepository->searchByLanguage($language);
-        } else {
-            $posts = $this->postRepository->searchByTitle($query);
+        if ($tags && !empty($tags)) {
+            $tagModels = Tag::whereIn('slug', $tags)->pluck('id');
+            $posts = $this->postRepository->searchByTags($tagModels->toArray());
+            return [
+                'posts' => $posts,
+            ];
         }
 
-        return [
-            'posts' => $posts,
-        ];
+        if ($language) {
+            $posts = $this->postRepository->searchByLanguage($language);
+            return [
+                'posts' => $posts,
+            ];
+        }
+
+        if (!empty($query)) {
+            // Try fulltext search first, fallback to LIKE
+            try {
+                $posts = $this->postRepository->fulltextSearch($query);
+            } catch (\Exception $e) {
+                $posts = $this->postRepository->searchByTitle($query);
+            }
+            return [
+                'posts' => $posts,
+            ];
+        }
+
+        return $this->postRepository->paginate($perPage);
     }
 
     public function getTrendingPosts(): array
@@ -113,11 +161,48 @@ class PostService
         }
 
         return DB::transaction(function () use ($post, $data) {
-            // Update post
-            $this->postRepository->update($post, [
-                'title' => $data['title'] ?? $post->title,
-                'body' => $data['body'] ?? $post->body,
-            ]);
+            $updateData = [];
+
+            if (isset($data['title'])) {
+                $updateData['title'] = $data['title'];
+                // Regenerate slug if title changed
+                $slug = Str::slug($data['title']);
+                if ($slug !== $post->slug) {
+                    $originalSlug = $slug;
+                    $count = 1;
+                    while (\App\Models\Post::where('slug', $slug)->where('id', '!=', $post->id)->exists()) {
+                        $slug = $originalSlug . '-' . $count++;
+                    }
+                    $updateData['slug'] = $slug;
+                }
+            }
+
+            if (isset($data['body'])) {
+                $updateData['body'] = $data['body'];
+            }
+
+            if (isset($data['visibility'])) {
+                $updateData['visibility'] = $data['visibility'];
+            }
+
+            if (isset($data['meta'])) {
+                $updateData['meta'] = $data['meta'];
+            }
+
+            $this->postRepository->update($post, $updateData);
+
+            // Update tags if provided
+            if (isset($data['tags'])) {
+                $tagIds = [];
+                foreach ($data['tags'] as $tagName) {
+                    $tag = Tag::firstOrCreate(
+                        ['name' => $tagName],
+                        ['slug' => Str::slug($tagName)]
+                    );
+                    $tagIds[] = $tag->id;
+                }
+                $post->tags()->sync($tagIds);
+            }
 
             // If body changed, update snippets
             if (isset($data['body'])) {
@@ -166,5 +251,28 @@ class PostService
 
         return $this->postRepository->delete($post);
     }
-}
 
+    public function toggleLike(int $postId, int $userId): array
+    {
+        $post = $this->postRepository->find($postId);
+
+        if (!$post) {
+            throw new \Exception('Post not found');
+        }
+
+        $like = $post->likes()->where('user_id', $userId)->first();
+
+        if ($like) {
+            $like->delete();
+            $liked = false;
+        } else {
+            $post->likes()->create(['user_id' => $userId]);
+            $liked = true;
+        }
+
+        return [
+            'liked' => $liked,
+            'likes_count' => $post->likes()->count(),
+        ];
+    }
+}

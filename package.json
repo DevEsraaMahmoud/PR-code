@@ -7,6 +7,8 @@
         "dev": "vite"
     },
     "dependencies": {
+        "@inertiajs/progress": "^0.2.7",
+        "@inertiajs/vue3": "^2.2.19",
         "@vueuse/core": "^11.0.0",
         "axios": "^1.11.0",
         "pinia": "^2.1.7",

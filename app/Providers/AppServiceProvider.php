@@ -10,6 +10,7 @@ use App\Repositories\PostRepository;
 use App\Repositories\SnippetRepository;
 use App\Services\CommentService;
 use App\Services\PostService;
+use App\Services\SearchService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -43,14 +44,19 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(CommentService::class, function ($app) {
-            return new CommentService(
-                $app->make(CommentRepository::class),
-                $app->make(PostRepository::class),
-                $app->make(SnippetRepository::class)
-            );
-        });
-    }
+            $this->app->singleton(CommentService::class, function ($app) {
+                return new CommentService(
+                    $app->make(CommentRepository::class),
+                    $app->make(PostRepository::class),
+                    $app->make(SnippetRepository::class)
+                );
+            });
+            $this->app->singleton(SearchService::class, function ($app) {
+                return new SearchService(
+                    $app->make(PostRepository::class)
+                );
+            });
+        }
 
     /**
      * Bootstrap any application services.

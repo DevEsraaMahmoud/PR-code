@@ -15,23 +15,42 @@ class PostRepository
 
     public function find(int $id): ?Post
     {
-        return Post::with(['user', 'snippets', 'snippets.comments.user', 'snippets.comments.replies.user'])->find($id);
+        return Post::with(['user', 'snippets', 'tags', 'snippets.comments.user', 'snippets.comments.replies.user', 'comments.user', 'comments.replies.user'])
+            ->find($id);
+    }
+
+    public function findBySlug(string $slug): ?Post
+    {
+        return Post::with(['user', 'snippets', 'tags', 'snippets.comments.user', 'snippets.comments.replies.user', 'comments.user', 'comments.replies.user'])
+            ->where('slug', $slug)
+            ->first();
     }
 
     public function getAll(): Collection
     {
-        return Post::with(['user', 'snippets'])->latest()->get();
+        return Post::with(['user', 'snippets', 'tags'])
+            ->where('visibility', 'public')
+            ->latest()
+            ->get();
     }
 
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(int $perPage = 15, ?string $visibility = 'public'): LengthAwarePaginator
     {
-        return Post::with(['user', 'snippets'])->latest()->paginate($perPage);
+        $query = Post::with(['user', 'snippets', 'tags'])
+            ->latest();
+
+        if ($visibility) {
+            $query->where('visibility', $visibility);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function searchByTitle(string $query): Collection
     {
         return Post::where('title', 'like', "%{$query}%")
-            ->with(['user', 'snippets'])
+            ->where('visibility', 'public')
+            ->with(['user', 'snippets', 'tags'])
             ->latest()
             ->get();
     }
@@ -41,7 +60,30 @@ class PostRepository
         return Post::whereHas('snippets', function ($q) use ($language) {
             $q->where('language', $language);
         })
-            ->with(['user', 'snippets'])
+            ->where('visibility', 'public')
+            ->with(['user', 'snippets', 'tags'])
+            ->latest()
+            ->get();
+    }
+
+    public function searchByTags(array $tagIds): Collection
+    {
+        return Post::whereHas('tags', function ($q) use ($tagIds) {
+            $q->whereIn('tags.id', $tagIds);
+        })
+            ->where('visibility', 'public')
+            ->with(['user', 'snippets', 'tags'])
+            ->latest()
+            ->get();
+    }
+
+    public function fulltextSearch(string $query): Collection
+    {
+        // MySQL fulltext search
+        return Post::whereRaw("MATCH(title) AGAINST(? IN BOOLEAN MODE)", [$query])
+            ->orWhereRaw("MATCH(title) AGAINST(? IN NATURAL LANGUAGE MODE)", [$query])
+            ->where('visibility', 'public')
+            ->with(['user', 'snippets', 'tags'])
             ->latest()
             ->get();
     }
@@ -49,12 +91,13 @@ class PostRepository
     public function getTrending(int $limit = 10): Collection
     {
         // Simple trending: posts with most comments in last 7 days
-        return Post::with(['user', 'snippets'])
-            ->whereHas('comments', function ($q) {
+        return Post::with(['user', 'snippets', 'tags'])
+            ->where('visibility', 'public')
+            ->whereHas('allComments', function ($q) {
                 $q->where('created_at', '>=', now()->subDays(7));
             })
-            ->withCount('comments')
-            ->orderBy('comments_count', 'desc')
+            ->withCount('allComments')
+            ->orderBy('all_comments_count', 'desc')
             ->limit($limit)
             ->get();
     }
@@ -69,4 +112,3 @@ class PostRepository
         return $post->delete();
     }
 }
-

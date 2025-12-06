@@ -3,19 +3,31 @@
 namespace App\Listeners;
 
 use App\Events\CommentCreated;
+use App\Events\CommentCreatedBroadcast;
 use App\Models\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 
-class SendCommentNotification
+class SendCommentNotification implements ShouldQueue
 {
+    use InteractsWithQueue;
     /**
      * Handle the event.
      */
     public function handle(CommentCreated $event): void
     {
-        $comment = $event->comment;
+        $comment = $event->comment->load(['snippet.post', 'parent', 'user']);
+        
+        // Broadcast the comment creation event
+        broadcast(new CommentCreatedBroadcast($comment))->toOthers();
+        
         $snippet = $comment->snippet;
-        $post = $snippet->post;
+        $post = $snippet?->post ?? $comment->post;
+        
+        if (!$post) {
+            return;
+        }
 
         // Notify post author (if not the commenter)
         if ($post->user_id !== $comment->user_id) {

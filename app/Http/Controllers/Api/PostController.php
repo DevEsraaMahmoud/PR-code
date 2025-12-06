@@ -17,22 +17,31 @@ class PostController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with pagination.
      */
     public function index(Request $request): JsonResponse
     {
+        $perPage = (int) ($request->query('per_page', 15));
         $query = $request->query('q');
         $language = $request->query('language');
+        $tags = $request->query('tags') ? explode(',', $request->query('tags')) : null;
+        $visibility = $request->query('visibility', 'public');
 
-        if ($query || $language) {
-            $result = $this->postService->searchPosts($query ?? '', $language);
-        } else {
-            $result = $this->postService->getAllPosts();
+        if ($query || $language || $tags) {
+            $result = $this->postService->searchPosts($query ?? '', $language, $tags, $perPage);
+            
+            if ($result instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+                return PostResource::collection($result)->response();
+            }
+            
+            return response()->json([
+                'data' => PostResource::collection($result['posts']),
+            ]);
         }
 
-        return response()->json([
-            'data' => PostResource::collection($result['posts']),
-        ]);
+        $posts = $this->postService->getAllPosts($perPage, $visibility);
+
+        return PostResource::collection($posts)->response();
     }
 
     /**
@@ -56,11 +65,11 @@ class PostController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource (by ID or slug).
      */
     public function show(string $id): JsonResponse
     {
-        $result = $this->postService->getPost((int) $id);
+        $result = $this->postService->getPost($id);
 
         if (!$result) {
             return response()->json([
@@ -122,5 +131,25 @@ class PostController extends Controller
         return response()->json([
             'data' => PostResource::collection($result['posts']),
         ]);
+    }
+
+    /**
+     * Toggle like on a post.
+     */
+    public function toggleLike(Request $request, string $id): JsonResponse
+    {
+        try {
+            $result = $this->postService->toggleLike((int) $id, $request->user()->id);
+
+            return response()->json([
+                'data' => $result,
+                'message' => $result['liked'] ? 'Post liked' : 'Post unliked',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to toggle like',
+                'error' => $e->getMessage(),
+            ], 422);
+        }
     }
 }
