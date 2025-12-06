@@ -1,10 +1,10 @@
 <template>
   <article
-    class="post-card bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow cursor-pointer"
+    class="post-card bg-gray-800 rounded-lg border border-gray-700 hover:shadow-lg transition-shadow cursor-pointer"
     @click="navigateToPost"
   >
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-4 border-b border-gray-700">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <img
@@ -15,14 +15,14 @@
           />
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-semibold text-gray-900 dark:text-gray-100">
+              <span class="font-semibold text-gray-100">
                 {{ post.author?.name || 'Anonymous' }}
               </span>
-              <span v-if="post.author?.handle" class="text-sm text-gray-500">
+              <span v-if="post.author?.handle" class="text-sm text-gray-400">
                 @{{ post.author.handle }}
               </span>
             </div>
-            <span class="text-xs text-gray-500">
+            <span class="text-xs text-gray-400">
               {{ formatDate(post.created_at) }}
             </span>
           </div>
@@ -32,13 +32,13 @@
 
     <!-- Content -->
     <div class="px-6 py-4">
-      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+      <h2 class="text-xl font-semibold text-gray-100 mb-2">
         {{ post.title }}
       </h2>
       
       <!-- Rich text excerpt -->
       <div
-        class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 prose prose-sm dark:prose-invert max-w-none"
+        class="text-gray-300 mb-4 line-clamp-3 prose prose-sm prose-invert max-w-none"
         v-html="truncateHtml(post.body || post.body_html || '')"
       ></div>
 
@@ -48,7 +48,7 @@
           <!-- Text Block -->
           <div
             v-if="block.type === 'text'"
-            class="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap"
+            class="text-gray-300 text-sm whitespace-pre-wrap"
             v-html="truncateHtml(block.content || '')"
           ></div>
           
@@ -90,11 +90,11 @@
     </div>
 
     <!-- Footer -->
-    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+    <div class="px-6 py-4 border-t border-gray-700">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-3 flex-wrap">
           <!-- Likes -->
-          <div class="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400" title="Likes">
+          <div class="flex items-center gap-1 text-sm text-gray-400" title="Likes">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fill-rule="evenodd"
@@ -119,7 +119,7 @@
           
           <!-- General Comments Count -->
           <div 
-            class="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400" 
+            class="flex items-center gap-1 text-sm text-gray-400" 
             title="General comments"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@
           <!-- Lines Count (if code exists) -->
           <div 
             v-if="totalLinesCount > 0"
-            class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-500" 
+            class="flex items-center gap-1 text-sm text-gray-500" 
             title="Total lines of code"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@
           </div>
           
           <!-- Views -->
-          <div class="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400" title="Views">
+          <div class="flex items-center gap-1 text-sm text-gray-400" title="Views">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -151,7 +151,7 @@
         </div>
         <Link
           :href="`/posts/${post.id}`"
-          class="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+          class="text-sm text-blue-400 hover:underline font-medium"
           @click.stop
         >
           Read more →

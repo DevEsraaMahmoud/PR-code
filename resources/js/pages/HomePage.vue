@@ -1,18 +1,18 @@
 <template>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">PR Code</h1>
+            <h1 class="text-3xl font-bold text-gray-100 mb-4">PR Code</h1>
             <div class="flex space-x-4">
                 <input
                     v-model="searchQuery"
                     type="text"
                     placeholder="Search by title..."
-                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    class="flex-1 px-4 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                     @keyup.enter="handleSearch"
                 />
                 <select
                     v-model="selectedLanguage"
-                    class="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    class="px-4 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
                     @change="handleSearch"
                 >
                     <option value="">All Languages</option>
@@ -38,14 +38,14 @@
         </div>
 
         <div v-else-if="postsStore.posts.length === 0" class="text-center py-12">
-            <p class="text-gray-500">No posts found.</p>
+            <p class="text-gray-400">No posts found.</p>
         </div>
 
         <div v-else class="space-y-6">
             <div
                 v-for="post in postsStore.posts"
                 :key="post.id"
-                class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                class="bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-700"
                 @click="$router.push(`/posts/${post.id}`)"
             >
                 <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ post.title }}</h2>

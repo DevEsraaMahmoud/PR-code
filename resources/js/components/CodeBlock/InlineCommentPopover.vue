@@ -3,23 +3,23 @@
     <div
       v-if="visible && lineNumber"
       ref="popoverRef"
-      class="inline-comment-popover fixed z-[9999] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-blue-500/50 dark:border-blue-400/50 w-80 max-w-[calc(100vw-2rem)] backdrop-blur-sm"
+      class="inline-comment-popover fixed z-[9999] bg-gray-800 rounded-xl shadow-2xl border border-blue-500/50 w-80 max-w-[calc(100vw-2rem)] backdrop-blur-sm"
       :style="popoverStyle"
       role="dialog"
       aria-labelledby="popover-title"
       aria-modal="true"
     >
         <!-- Header -->
-        <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-800 rounded-t-xl flex items-center justify-between">
-          <h3 id="popover-title" class="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="px-4 py-3 border-b border-gray-700 bg-gradient-to-r from-gray-700 to-gray-800 rounded-t-xl flex items-center justify-between">
+          <h3 id="popover-title" class="text-sm font-semibold text-gray-100 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10m-7 4h7" />
             </svg>
             Line {{ lineNumber || '?' }}
           </h3>
           <button
             @click="$emit('close')"
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="text-gray-400 hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-700"
             aria-label="Close comment popover"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,12 +29,12 @@
         </div>
 
         <!-- Existing Comments -->
-        <div v-if="comments && comments.length > 0" class="max-h-64 overflow-y-auto border-b border-gray-200 dark:border-gray-700">
+        <div v-if="comments && comments.length > 0" class="max-h-64 overflow-y-auto border-b border-gray-700">
           <!-- View Thread Button -->
-          <div class="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+          <div class="px-4 py-2 bg-blue-900/20 border-b border-blue-800">
             <button
               @click="$emit('view-thread')"
-              class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors shadow-sm"
+              class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-300 bg-gray-800 border border-blue-700 rounded-lg hover:bg-blue-900/30 transition-colors shadow-sm"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -49,7 +49,7 @@
             <div
               v-for="comment in comments.slice(0, 2)"
               :key="comment.id"
-              class="px-2 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded"
+              class="px-2 py-2 border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50 transition-colors rounded"
             >
               <div class="flex items-start gap-2">
                 <img
@@ -60,38 +60,38 @@
                 />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
-                    <span class="text-xs font-medium text-gray-900 dark:text-gray-100">
+                    <span class="text-xs font-medium text-gray-100">
                       {{ comment.user?.name || 'Anonymous' }}
                     </span>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="text-xs text-gray-400">
                       {{ formatDate(comment.created_at) }}
                     </span>
                   </div>
-                  <p class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap line-clamp-2">
+                  <p class="text-xs text-gray-300 whitespace-pre-wrap line-clamp-2">
                     {{ comment.text || comment.body }}
                   </p>
                 </div>
               </div>
             </div>
-            <p v-if="comments.length > 2" class="text-xs text-gray-500 dark:text-gray-400 px-2 mt-2 text-center">
+            <p v-if="comments.length > 2" class="text-xs text-gray-400 px-2 mt-2 text-center">
               +{{ comments.length - 2 }} more comment{{ comments.length - 2 === 1 ? '' : 's' }}
             </p>
           </div>
         </div>
 
         <!-- Comment Form -->
-        <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl">
+        <div class="p-4 border-t border-gray-700 bg-gray-900/50 rounded-b-xl">
           <textarea
             v-model="commentText"
             ref="textareaRef"
             :placeholder="comments && comments.length > 0 ? 'Add a reply...' : 'Add a comment on this line...'"
-            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+            class="w-full px-3 py-2 text-sm border border-gray-600 rounded-lg bg-gray-800 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
             rows="3"
             @keydown.ctrl.enter="submitComment"
             @keydown.meta.enter="submitComment"
           ></textarea>
           <div class="flex items-center justify-between mt-3">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Press Ctrl+Enter to submit</span>
+            <span class="text-xs text-gray-400">Press Ctrl+Enter to submit</span>
             <button
               @click="submitComment"
               :disabled="!commentText.trim() || submitting"

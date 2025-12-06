@@ -1,14 +1,14 @@
 <template>
-    <div class="border border-gray-300 rounded-md p-4 bg-white">
+    <div class="border border-gray-600 rounded-md p-4 bg-gray-800">
         <div class="flex justify-between items-center mb-2">
-            <span class="text-sm font-medium text-gray-700">
+            <span class="text-sm font-medium text-gray-300">
                 {{ block.type === 'code' ? 'Code Block' : 'Text Block' }}
             </span>
             <button
                 v-if="blocks && blocks.length > 1"
                 type="button"
                 @click="$emit('remove', index)"
-                class="text-red-600 hover:text-red-700 text-sm"
+                class="text-red-400 hover:text-red-300 text-sm"
             >
                 Remove
             </button>
@@ -17,7 +17,7 @@
             <select
                 :value="block.language"
                 @change="updateLanguage"
-                class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                class="px-3 py-1 border border-gray-600 rounded-md bg-gray-700 text-gray-100 text-sm focus:ring-blue-500 focus:border-blue-500"
             >
                 <option value="javascript">JavaScript</option>
                 <option value="typescript">TypeScript</option>
@@ -43,15 +43,13 @@
             :value="block.content"
             @input="updateContent"
             :rows="block.type === 'code' ? 10 : 5"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-900 text-gray-100 placeholder-gray-500 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"
             :placeholder="block.type === 'code' ? 'Enter code...' : 'Enter text...'"
         ></textarea>
     </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
-
 const props = defineProps<{
     block: { type: string; content: string; language?: string };
     index: number;

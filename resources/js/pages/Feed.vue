@@ -3,7 +3,7 @@
     <div class="feed-page">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">PR Code Feed</h1>
+        <h1 class="text-3xl font-bold text-gray-100">PR Code Feed</h1>
         <Link
           v-if="$page.props.auth?.user"
           href="/posts/create"
@@ -14,7 +14,7 @@
       </div>
 
       <!-- Posts List -->
-      <div v-if="posts.length === 0" class="text-center py-12 text-gray-500">
+      <div v-if="posts.length === 0" class="text-center py-12 text-gray-400">
         <p class="text-lg mb-2">No posts yet</p>
         <p class="text-sm">Be the first to share your code!</p>
       </div>

@@ -1,10 +1,10 @@
 <template>
     <AppLayout>
         <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl font-bold text-gray-900 mb-8">Edit Post</h1>
-            <form @submit.prevent="submit" class="bg-white rounded-xl shadow-md p-8 border border-gray-100">
+            <h1 class="text-3xl font-bold text-gray-100 mb-8">Edit Post</h1>
+            <form @submit.prevent="submit" class="bg-gray-800 rounded-xl shadow-md p-8 border border-gray-700">
                 <div class="mb-6">
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="title" class="block text-sm font-medium text-gray-300 mb-2">
                         Title
                     </label>
                     <input
@@ -12,27 +12,27 @@
                         v-model="form.title"
                         type="text"
                         required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        class="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter post title..."
                     />
-                    <div v-if="errors.title" class="mt-1 text-sm text-red-600">{{ errors.title }}</div>
+                    <div v-if="errors.title" class="mt-1 text-sm text-red-400">{{ errors.title }}</div>
                 </div>
 
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Content</label>
+                        <label class="block text-sm font-medium text-gray-300">Content</label>
                         <div class="space-x-2">
                             <button
                                 type="button"
                                 @click="addTextBlock"
-                                class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                class="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
                             >
                                 + Text
                             </button>
                             <button
                                 type="button"
                                 @click="addCodeBlock"
-                                class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                                class="px-3 py-1 text-sm bg-blue-900/30 text-blue-300 rounded-lg hover:bg-blue-900/50 transition-colors"
                             >
                                 + Code
                             </button>
@@ -59,7 +59,7 @@
                     >
                         {{ processing ? 'Updating...' : 'Update Post' }}
                     </button>
-                    <Link :href="`/posts/${post.id}`" class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors">
+                    <Link :href="`/posts/${post.id}`" class="px-6 py-3 bg-gray-700 text-gray-300 font-semibold rounded-lg hover:bg-gray-600 transition-colors">
                         Cancel
                     </Link>
                 </div>

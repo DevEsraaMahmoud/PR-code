@@ -1,10 +1,10 @@
 <template>
     <div class="max-w-md mx-auto mt-16">
-        <div class="bg-white rounded-lg shadow-md p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Register</h2>
+        <div class="bg-gray-800 rounded-lg shadow-md p-8 border border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-100 mb-6">Register</h2>
             <form @submit.prevent="handleRegister">
                 <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="name" class="block text-sm font-medium text-gray-300 mb-2">
                         Name
                     </label>
                     <input
@@ -12,11 +12,11 @@
                         v-model="name"
                         type="text"
                         required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
                         Email
                     </label>
                     <input
@@ -24,11 +24,11 @@
                         v-model="email"
                         type="email"
                         required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 <div class="mb-4">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
                         Password
                     </label>
                     <input
@@ -37,11 +37,11 @@
                         type="password"
                         required
                         minlength="8"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 <div class="mb-6">
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-300 mb-2">
                         Confirm Password
                     </label>
                     <input
@@ -50,10 +50,10 @@
                         type="password"
                         required
                         minlength="8"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
-                <div v-if="error" class="mb-4 text-red-600 text-sm">{{ error }}</div>
+                <div v-if="error" class="mb-4 text-red-400 text-sm">{{ error }}</div>
                 <button
                     type="submit"
                     :disabled="loading"
@@ -62,9 +62,9 @@
                     {{ loading ? 'Registering...' : 'Register' }}
                 </button>
             </form>
-            <p class="mt-4 text-center text-sm text-gray-600">
+            <p class="mt-4 text-center text-sm text-gray-400">
                 Already have an account?
-                <router-link to="/login" class="text-blue-600 hover:underline">Login</router-link>
+                <router-link to="/login" class="text-blue-400 hover:text-blue-300 hover:underline">Login</router-link>
             </p>
         </div>
     </div>

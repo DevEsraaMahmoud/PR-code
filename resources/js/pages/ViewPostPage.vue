@@ -10,21 +10,21 @@
 
         <div v-else class="flex gap-6">
             <div class="flex-1">
-                <div class="bg-white rounded-lg shadow p-6 mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <div class="bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-700">
+                    <h1 class="text-3xl font-bold text-gray-100 mb-2">
                         {{ postsStore.currentPost.title }}
                     </h1>
-                    <p class="text-sm text-gray-500 mb-6">
+                    <p class="text-sm text-gray-400 mb-6">
                         By {{ postsStore.currentPost.user.name }} • {{ formatDate(postsStore.currentPost.created_at) }}
                     </p>
 
-                    <div class="prose max-w-none">
+                    <div class="prose max-w-none prose-invert">
                         <div
                             v-for="(block, index) in postsStore.currentPost.body"
                             :key="index"
                             class="mb-6"
                         >
-                            <div v-if="block.type === 'text'" class="text-gray-700 whitespace-pre-wrap">
+                            <div v-if="block.type === 'text'" class="text-gray-300 whitespace-pre-wrap">
                                 {{ block.content }}
                             </div>
                             <div v-else-if="block.type === 'code'">

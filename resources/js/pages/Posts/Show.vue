@@ -2,25 +2,25 @@
     <AppLayout>
         <div class="max-w-7xl mx-auto px-4 py-8">
             <!-- Post Header -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 mb-6 border border-gray-100 dark:border-gray-700">
+            <div class="bg-gray-800 rounded-xl shadow-md p-8 mb-6 border border-gray-700">
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex-1">
-                        <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">{{ post?.title }}</h1>
+                        <h1 class="text-4xl font-bold text-gray-100 mb-4">{{ post?.title }}</h1>
                         <div class="flex items-center space-x-4 mb-4">
-                            <div class="flex items-center text-gray-600 dark:text-gray-400">
+                            <div class="flex items-center text-gray-400">
                                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
                                     {{ post.user?.name?.charAt(0).toUpperCase() || '?' }}
                                 </div>
                                 <div>
-                                    <p class="font-medium text-gray-900 dark:text-gray-100">{{ post.user?.name || 'Unknown User' }}</p>
-                                    <p class="text-sm">{{ post?.created_at ? formatDate(post.created_at) : '' }}</p>
+                                    <p class="font-medium text-gray-100">{{ post.user?.name || 'Unknown User' }}</p>
+                                    <p class="text-sm text-gray-400">{{ post?.created_at ? formatDate(post.created_at) : '' }}</p>
                                 </div>
                             </div>
                             <div v-if="post?.tags && post.tags.length > 0" class="flex flex-wrap gap-2">
                                 <span
                                     v-for="tag in post.tags"
                                     :key="tag.id"
-                                    class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full"
+                                    class="px-2 py-1 text-xs bg-blue-900/30 text-blue-300 rounded-full"
                                 >
                                     {{ tag.name }}
                                 </span>
@@ -28,7 +28,7 @@
                         </div>
                     </div>
                     <div v-if="canEdit && post?.id" class="flex space-x-2">
-                        <Link :href="`/posts/${post.id}/edit`" class="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">
+                        <Link :href="`/posts/${post.id}/edit`" class="px-4 py-2 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600">
                             Edit
                         </Link>
                     </div>
@@ -45,9 +45,9 @@
                             <!-- Text Block -->
                             <div
                                 v-if="block.type === 'text' && block.content"
-                                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                                class="bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-700 hover:shadow-md transition-shadow"
                             >
-                                <div class="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                                <div class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap leading-relaxed">
                                     {{ block.content }}
                                 </div>
                             </div>
@@ -55,7 +55,7 @@
                             <!-- Code Block -->
                             <div
                                 v-else-if="block.type === 'code' && block.content"
-                                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                                class="bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-700 hover:shadow-md transition-shadow"
                             >
                                 <CodeSnippetCompact
                                     :code="block.content || ''"
@@ -73,14 +73,14 @@
                     <!-- Fallback: Old format -->
                     <div v-else class="space-y-6">
                         <!-- Rich text body -->
-                        <div v-if="postBodyHtml" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700">
-                            <div class="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                        <div v-if="postBodyHtml" class="bg-gray-800 rounded-xl shadow-md p-6 border border-gray-700">
+                            <div class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap">
                                 {{ postBodyHtml }}
                             </div>
                         </div>
 
                         <!-- Code Block -->
-                        <div v-if="postCode && postCode.content && postCode.content.trim()" class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
+                        <div v-if="postCode && postCode.content && postCode.content.trim()" class="bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-700">
                             <CodeSnippetCompact
                                 :code="postCode.content"
                                 :language="postCode.language || 'text'"
@@ -94,7 +94,7 @@
                     </div>
 
                     <!-- Actions -->
-                    <div v-if="post?.id" class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700">
+                    <div v-if="post?.id" class="bg-gray-800 rounded-xl shadow-md p-6 border border-gray-700">
                         <div class="flex items-center gap-4">
                             <LikeButton
                                 :post-id="post.id"
@@ -116,8 +116,8 @@
                     </div>
 
                     <!-- General Comments (only non-inline comments) -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Comments</h2>
+                    <div class="bg-gray-800 rounded-xl shadow-md border border-gray-700 p-6">
+                        <h2 class="text-xl font-semibold text-gray-100 mb-4">Comments</h2>
                         <CommentList
                             :comments="generalComments"
                             :post-id="post?.id"

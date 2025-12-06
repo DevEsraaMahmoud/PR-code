@@ -12,18 +12,18 @@
       <!-- Content -->
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1">
-          <span class="text-sm font-medium text-gray-900">
+          <span class="text-sm font-medium text-gray-100">
             {{ comment.user?.name || 'Anonymous' }}
           </span>
-          <span class="text-xs text-gray-500">
+          <span class="text-xs text-gray-400">
             {{ formatDate(comment.created_at) }}
           </span>
-          <span v-if="comment.isPending" class="text-xs text-blue-600">
+          <span v-if="comment.isPending" class="text-xs text-blue-400">
             Posting...
           </span>
         </div>
 
-        <p class="text-sm text-gray-700 whitespace-pre-wrap mb-2">
+        <p class="text-sm text-gray-300 whitespace-pre-wrap mb-2">
           {{ comment.text }}
         </p>
 
@@ -31,14 +31,14 @@
         <div class="flex items-center gap-4">
           <button
             @click="toggleReply"
-            class="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            class="text-xs text-gray-400 hover:text-gray-300 transition-colors"
           >
             {{ showReplyForm ? 'Cancel' : 'Reply' }}
           </button>
           <button
             v-if="canDelete"
             @click="handleDelete"
-            class="text-xs text-red-600 hover:text-red-700 transition-colors"
+            class="text-xs text-red-400 hover:text-red-300 transition-colors"
           >
             Delete
           </button>
@@ -50,18 +50,18 @@
             v-model="replyText"
             ref="replyTextareaRef"
             placeholder="Write a reply..."
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            class="w-full px-3 py-2 text-sm border border-gray-600 rounded-md bg-gray-800 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows="2"
             @keydown.ctrl.enter="submitReply"
             @keydown.meta.enter="submitReply"
           ></textarea>
           <div class="flex items-center justify-end gap-2 mt-2">
-            <button
-              @click="toggleReply"
-              class="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              Cancel
-            </button>
+              <button
+                @click="toggleReply"
+                class="px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-700 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
             <button
               @click="submitReply"
               :disabled="!replyText.trim() || submitting"
@@ -73,7 +73,7 @@
         </div>
 
         <!-- Nested Replies -->
-        <div v-if="comment.replies && comment.replies.length > 0" class="mt-4 ml-4 space-y-3 border-l-2 border-gray-200 pl-4">
+        <div v-if="comment.replies && comment.replies.length > 0" class="mt-4 ml-4 space-y-3 border-l-2 border-gray-700 pl-4">
           <CommentItem
             v-for="reply in comment.replies"
             :key="reply.id"

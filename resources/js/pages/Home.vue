@@ -3,10 +3,10 @@
         <div>
             <!-- Hero Section -->
             <div class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-100 mb-4">
                     Share Code, Get Feedback
                 </h1>
-                <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                     A platform for developers to share code snippets and receive inline comments, just like GitHub PR reviews.
                 </p>
                 <Link v-if="$page.props.auth.user" href="/posts/create" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
@@ -24,12 +24,12 @@
                         v-model="searchQuery"
                         type="text"
                         placeholder="Search posts by title..."
-                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        class="flex-1 px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         @keyup.enter="search"
                     />
                     <select
                         v-model="selectedLanguage"
-                        class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        class="px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         @change="search"
                     >
                         <option value="">All Languages</option>
@@ -43,7 +43,7 @@
                     </select>
                     <button
                         @click="search"
-                        class="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                        class="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
                     >
                         Search
                     </button>

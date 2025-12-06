@@ -5,7 +5,7 @@
       <!-- Back Button -->
       <Link
         href="/"
-        class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        class="inline-flex items-center gap-2 text-gray-400 hover:text-gray-100 mb-6 transition-colors"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -14,8 +14,8 @@
       </Link>
 
       <!-- Post Header -->
-      <article class="bg-white rounded-xl shadow-md border border-gray-100 mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
+      <article class="bg-gray-800 rounded-xl shadow-md border border-gray-700 mb-6">
+        <div class="px-6 py-4 border-b border-gray-700">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div v-if="post.user || post.author" class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -23,14 +23,14 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-gray-900">
+                  <span class="font-semibold text-gray-100">
                     {{ post.user?.name || post.author?.name || 'Anonymous' }}
                   </span>
-                  <span v-if="post.user?.handle || post.author?.handle" class="text-sm text-gray-500">
+                  <span v-if="post.user?.handle || post.author?.handle" class="text-sm text-gray-400">
                     @{{ post.user?.handle || post.author?.handle }}
                   </span>
                 </div>
-                <span class="text-xs text-gray-500">
+                <span class="text-xs text-gray-400">
                   {{ formatDate(post.created_at) }}
                 </span>
               </div>
@@ -44,13 +44,13 @@
         </div>
 
         <div class="px-6 py-6">
-          <h1 class="text-3xl font-bold text-gray-900 mb-4">
+          <h1 class="text-3xl font-bold text-gray-100 mb-4">
             {{ post.title }}
           </h1>
 
           <!-- Rich text body -->
           <div
-            class="prose prose-lg max-w-none mb-6 text-gray-700"
+            class="prose prose-lg max-w-none mb-6 text-gray-300 prose-invert"
             v-html="post.body_html || post.body"
           ></div>
 
@@ -65,12 +65,12 @@
             />
             <!-- Fallback to existing PostBlock component if using snippets format -->
             <div v-else>
-              <p class="text-sm text-gray-500 mb-2">Code blocks available - using existing component structure</p>
+              <p class="text-sm text-gray-400 mb-2">Code blocks available - using existing component structure</p>
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
+          <div class="flex items-center gap-4 pt-4 border-t border-gray-700">
             <LikeButton
               :post-id="post.id"
               :initial-liked="post.is_liked || false"
@@ -81,7 +81,7 @@
               :post-title="post.title"
               :post-url="postUrl"
             />
-            <div class="flex items-center gap-1 text-sm text-gray-600 ml-auto">
+            <div class="flex items-center gap-1 text-sm text-gray-400 ml-auto">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -93,7 +93,7 @@
       </article>
 
       <!-- General Comments -->
-      <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+      <div class="bg-gray-800 rounded-xl shadow-md border border-gray-700 p-6">
         <CommentList
           :comments="post.comments || []"
           :post-id="post.id"

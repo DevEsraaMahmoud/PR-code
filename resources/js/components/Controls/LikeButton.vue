@@ -5,8 +5,8 @@
     class="like-button flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
     :class="[
       isLiked
-        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30'
-        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600',
+        ? 'bg-red-900/20 text-red-400 hover:bg-red-900/30'
+        : 'bg-gray-700 text-gray-300 hover:bg-gray-600',
     ]"
     :aria-label="isLiked ? 'Unlike this post' : 'Like this post'"
     :aria-pressed="isLiked"

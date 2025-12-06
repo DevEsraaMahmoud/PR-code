@@ -2,27 +2,27 @@
   <div class="w-full">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold text-gray-900">
+      <h3 class="text-lg font-semibold text-gray-100">
         Comments
-        <span v-if="comments && comments.length > 0" class="text-sm font-normal text-gray-500">
+        <span v-if="comments && comments.length > 0" class="text-sm font-normal text-gray-400">
           ({{ comments.length }})
         </span>
       </h3>
     </div>
 
     <!-- Comment Form -->
-    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+    <div class="mb-6 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
       <textarea
         v-model="newCommentText"
         ref="commentTextareaRef"
         placeholder="Write a comment..."
-        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+        class="w-full px-3 py-2 text-sm border border-gray-600 rounded-md bg-gray-800 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
         rows="3"
         @keydown.ctrl.enter="submitComment"
         @keydown.meta.enter="submitComment"
       ></textarea>
       <div class="flex items-center justify-between mt-2">
-        <span class="text-xs text-gray-500">Press Ctrl+Enter to submit</span>
+        <span class="text-xs text-gray-400">Press Ctrl+Enter to submit</span>
         <button
           @click="submitComment"
           :disabled="!newCommentText.trim() || submitting"
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Comments -->
-    <div v-if="(!comments || comments.length === 0) && !submitting" class="text-center py-8 text-gray-500">
+    <div v-if="(!comments || comments.length === 0) && !submitting" class="text-center py-8 text-gray-400">
       No comments yet. Be the first to comment!
     </div>
 
@@ -51,7 +51,7 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-4 text-gray-500">
+    <div v-if="loading" class="text-center py-4 text-gray-400">
       Loading comments...
     </div>
   </div>
