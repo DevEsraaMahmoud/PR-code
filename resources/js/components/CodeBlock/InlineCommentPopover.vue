@@ -3,23 +3,23 @@
     <div
       v-if="visible && lineNumber"
       ref="popoverRef"
-      class="inline-comment-popover fixed z-[9999] bg-gray-800 rounded-xl shadow-2xl border border-blue-500/50 w-80 max-w-[calc(100vw-2rem)] backdrop-blur-sm"
+      class="inline-comment-popover fixed z-[9999] bg-[#252526] rounded-lg shadow-2xl border border-[#3e3e42] w-80 max-w-[calc(100vw-2rem)]"
       :style="popoverStyle"
       role="dialog"
       aria-labelledby="popover-title"
       aria-modal="true"
     >
         <!-- Header -->
-        <div class="px-4 py-3 border-b border-gray-700 bg-gradient-to-r from-gray-700 to-gray-800 rounded-t-xl flex items-center justify-between">
-          <h3 id="popover-title" class="text-sm font-semibold text-gray-100 flex items-center gap-2">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10m-7 4h7" />
+        <div class="px-4 py-3 border-b border-[#3e3e42] bg-[#252526] rounded-t-lg flex items-center justify-between">
+          <h3 id="popover-title" class="text-sm font-semibold text-[#cccccc] flex items-center gap-2">
+            <svg class="w-4 h-4 text-[#858585]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
             Line {{ lineNumber || '?' }}
           </h3>
           <button
             @click="$emit('close')"
-            class="text-gray-400 hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-700"
+            class="text-[#858585] hover:text-[#cccccc] transition-colors p-1 rounded hover:bg-[#3e3e42]"
             aria-label="Close comment popover"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,73 +29,133 @@
         </div>
 
         <!-- Existing Comments -->
-        <div v-if="comments && comments.length > 0" class="max-h-64 overflow-y-auto border-b border-gray-700">
+        <div v-if="comments && comments.length > 0" class="border-b border-[#3e3e42]">
           <!-- View Thread Button -->
-          <div class="px-4 py-2 bg-blue-900/20 border-b border-blue-800">
+          <div class="px-4 py-3 bg-[#1e1e1e] border-b border-[#3e3e42]">
             <button
-              @click="$emit('view-thread')"
-              class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-300 bg-gray-800 border border-blue-700 rounded-lg hover:bg-blue-900/30 transition-colors shadow-sm"
+              @click="showFullThread = !showFullThread"
+              class="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium text-white bg-[#007acc] border border-[#005a9e] rounded hover:bg-[#005a9e] transition-colors"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              View Full Thread ({{ comments.length }} {{ comments.length === 1 ? 'comment' : 'comments' }})
+              {{ showFullThread ? 'Hide Full Thread' : `View Full Thread (${comments.length} ${comments.length === 1 ? 'comment' : 'comments'})` }}
             </button>
           </div>
           
-          <!-- Comments Preview -->
-          <div class="px-2 py-2">
-            <p class="text-xs text-gray-500 dark:text-gray-400 px-2 mb-2">Recent comments:</p>
-            <div
-              v-for="comment in comments.slice(0, 2)"
-              :key="comment.id"
-              class="px-2 py-2 border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50 transition-colors rounded"
-            >
-              <div class="flex items-start gap-2">
-                <img
-                  :src="getAvatarUrl(comment.user?.avatar_url, comment.user?.name, 20)"
-                  :alt="comment.user?.name || 'User'"
-                  class="w-5 h-5 rounded-full flex-shrink-0"
-                  @error="(e) => { (e.target as HTMLImageElement).src = generateFallbackAvatar(comment.user?.name); }"
-                />
+          <!-- Comments Preview (Collapsed) -->
+          <div v-if="!showFullThread" class="px-4 py-3 bg-[#252526] max-h-64 overflow-y-auto">
+            <p class="text-xs text-[#858585] mb-3">Recent comments:</p>
+            <div class="space-y-3">
+              <div
+                v-for="comment in comments.slice(0, 2)"
+                :key="comment.id"
+                class="flex items-start gap-2"
+              >
+                <div class="w-6 h-6 rounded-full bg-[#007acc] flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                  {{ comment.user?.name?.charAt(0).toUpperCase() || '?' }}
+                </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
-                    <span class="text-xs font-medium text-gray-100">
+                    <span class="text-xs font-medium text-[#cccccc]">
                       {{ comment.user?.name || 'Anonymous' }}
                     </span>
-                    <span class="text-xs text-gray-400">
+                    <span class="text-[10px] text-[#858585]">
                       {{ formatDate(comment.created_at) }}
                     </span>
                   </div>
-                  <p class="text-xs text-gray-300 whitespace-pre-wrap line-clamp-2">
+                  <p class="text-xs text-[#cccccc] whitespace-pre-wrap">
                     {{ comment.text || comment.body }}
                   </p>
                 </div>
               </div>
             </div>
-            <p v-if="comments.length > 2" class="text-xs text-gray-400 px-2 mt-2 text-center">
+            <p v-if="comments.length > 2" class="text-xs text-[#858585] mt-3 text-center">
               +{{ comments.length - 2 }} more comment{{ comments.length - 2 === 1 ? '' : 's' }}
             </p>
+          </div>
+
+          <!-- Full Thread View (Expanded) -->
+          <div v-else class="px-4 py-3 bg-[#252526] max-h-96 overflow-y-auto">
+            <p class="text-xs text-[#858585] mb-3">All comments:</p>
+            <div class="space-y-3">
+              <div
+                v-for="comment in comments"
+                :key="comment.id"
+                class="flex items-start gap-2"
+              >
+                <div class="w-6 h-6 rounded-full bg-[#007acc] flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                  {{ comment.user?.name?.charAt(0).toUpperCase() || '?' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-medium text-[#cccccc]">
+                      {{ comment.user?.name || 'Anonymous' }}
+                    </span>
+                    <span class="text-[10px] text-[#858585]">
+                      {{ formatDate(comment.created_at) }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-[#cccccc] whitespace-pre-wrap mb-2">
+                    {{ comment.text || comment.body }}
+                  </p>
+                  <!-- Emoji Reactions -->
+                  <div class="flex items-center gap-1 mt-2">
+                    <button
+                      @click.stop="toggleReaction(comment.id, '👍')"
+                      class="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-[#3e3e42] transition-colors text-[10px]"
+                      :class="hasReaction(comment.id, '👍') ? 'bg-[#3e3e42]' : ''"
+                    >
+                      <span>👍</span>
+                      <span class="text-[#858585]">{{ getReactionCount(comment.id, '👍') }}</span>
+                    </button>
+                    <button
+                      @click.stop="toggleReaction(comment.id, '😄')"
+                      class="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-[#3e3e42] transition-colors text-[10px]"
+                      :class="hasReaction(comment.id, '😄') ? 'bg-[#3e3e42]' : ''"
+                    >
+                      <span>😄</span>
+                      <span class="text-[#858585]">{{ getReactionCount(comment.id, '😄') }}</span>
+                    </button>
+                    <button
+                      @click.stop="toggleReaction(comment.id, '👀')"
+                      class="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-[#3e3e42] transition-colors text-[10px]"
+                      :class="hasReaction(comment.id, '👀') ? 'bg-[#3e3e42]' : ''"
+                    >
+                      <span>👀</span>
+                      <span class="text-[#858585]">{{ getReactionCount(comment.id, '👀') }}</span>
+                    </button>
+                    <button
+                      @click.stop="showReactionPicker(comment.id)"
+                      class="px-1.5 py-0.5 rounded hover:bg-[#3e3e42] transition-colors text-[#858585] hover:text-[#cccccc] text-[10px]"
+                      title="Add reaction"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Comment Form -->
-        <div class="p-4 border-t border-gray-700 bg-gray-900/50 rounded-b-xl">
+        <div class="p-4 border-t border-[#3e3e42] bg-[#252526] rounded-b-lg">
           <textarea
             v-model="commentText"
             ref="textareaRef"
             :placeholder="comments && comments.length > 0 ? 'Add a reply...' : 'Add a comment on this line...'"
-            class="w-full px-3 py-2 text-sm border border-gray-600 rounded-lg bg-gray-800 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+            class="w-full px-3 py-2 text-sm border border-[#3e3e42] rounded bg-[#1e1e1e] text-[#cccccc] placeholder-[#858585] focus:outline-none focus:ring-1 focus:ring-[#007acc] focus:border-[#007acc] resize-none transition-all"
             rows="3"
             @keydown.ctrl.enter="submitComment"
             @keydown.meta.enter="submitComment"
           ></textarea>
           <div class="flex items-center justify-between mt-3">
-            <span class="text-xs text-gray-400">Press Ctrl+Enter to submit</span>
+            <span class="text-xs text-[#858585]">Press Ctrl+Enter to submit</span>
             <button
               @click="submitComment"
               :disabled="!commentText.trim() || submitting"
-              class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed rounded-lg transition-all shadow-sm hover:shadow-md"
+              class="px-4 py-2 text-sm font-medium text-white bg-[#3e3e42] hover:bg-[#4e4e4e] disabled:bg-[#2a2d2e] disabled:text-[#858585] disabled:cursor-not-allowed rounded transition-colors"
             >
               {{ submitting ? 'Posting...' : (comments && comments.length > 0 ? 'Reply' : 'Comment') }}
             </button>
@@ -121,13 +181,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: [];
   'submit-comment': [{ lineNumber: number; text: string }];
-  'view-thread': [];
 }>();
 
 const popoverRef = ref<HTMLElement | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const commentText = ref('');
 const submitting = ref(false);
+const showFullThread = ref(false);
 
 onMounted(() => {
   console.log('InlineCommentPopover mounted, visible:', props.visible, 'lineNumber:', props.lineNumber);
@@ -272,5 +332,60 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   document.removeEventListener('keydown', handleEscape);
 });
+
+function hasReaction(commentId: number | string, emoji: string): boolean {
+  return userReactions.value[String(commentId)]?.includes(emoji) || false;
+}
+
+function getReactionCount(commentId: number | string, emoji: string): number {
+  return reactions.value[String(commentId)]?.[emoji] || 0;
+}
+
+async function toggleReaction(commentId: number | string, emoji: string) {
+  const cId = String(commentId);
+  const hasReacted = hasReaction(commentId, emoji);
+  
+  try {
+    const response = await fetch(`/api/comments/${commentId}/reactions`, {
+      method: hasReacted ? 'DELETE' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      },
+      body: JSON.stringify({ emoji }),
+    });
+    
+    if (response.ok) {
+      if (hasReacted) {
+        // Remove reaction
+        if (reactions.value[cId]?.[emoji]) {
+          reactions.value[cId][emoji]--;
+          if (reactions.value[cId][emoji] === 0) {
+            delete reactions.value[cId][emoji];
+          }
+        }
+        userReactions.value[cId] = userReactions.value[cId]?.filter((e: string) => e !== emoji) || [];
+      } else {
+        // Add reaction
+        if (!reactions.value[cId]) {
+          reactions.value[cId] = {};
+        }
+        reactions.value[cId][emoji] = (reactions.value[cId][emoji] || 0) + 1;
+        if (!userReactions.value[cId]) {
+          userReactions.value[cId] = [];
+        }
+        userReactions.value[cId].push(emoji);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to toggle reaction:', error);
+  }
+}
+
+function showReactionPicker(commentId: number | string) {
+  showReactionPickerFor.value = showReactionPickerFor.value === String(commentId) ? null : String(commentId);
+}
 </script>
 

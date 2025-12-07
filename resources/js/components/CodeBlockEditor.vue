@@ -1,23 +1,23 @@
 <template>
-    <div class="border border-gray-600 rounded-md p-4 bg-gray-800">
-        <div class="flex justify-between items-center mb-2">
-            <span class="text-sm font-medium text-gray-300">
+    <div class="border border-[#3e3e42] rounded p-4 bg-[#252526]">
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-medium text-[#cccccc]">
                 {{ block.type === 'code' ? 'Code Block' : 'Text Block' }}
             </span>
             <button
                 v-if="blocks && blocks.length > 1"
                 type="button"
                 @click="$emit('remove', index)"
-                class="text-red-400 hover:text-red-300 text-sm"
+                class="text-red-400 hover:text-red-300 text-sm transition-colors"
             >
                 Remove
             </button>
         </div>
-        <div v-if="block.type === 'code'" class="mb-2">
+        <div v-if="block.type === 'code'" class="mb-3">
             <select
                 :value="block.language"
                 @change="updateLanguage"
-                class="px-3 py-1 border border-gray-600 rounded-md bg-gray-700 text-gray-100 text-sm focus:ring-blue-500 focus:border-blue-500"
+                class="px-3 py-1.5 border border-[#3e3e42] rounded bg-[#1e1e1e] text-[#cccccc] text-sm focus:ring-1 focus:ring-[#007acc] focus:border-[#007acc] transition-all"
             >
                 <option value="javascript">JavaScript</option>
                 <option value="typescript">TypeScript</option>
@@ -43,8 +43,9 @@
             :value="block.content"
             @input="updateContent"
             :rows="block.type === 'code' ? 10 : 5"
-            class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-900 text-gray-100 placeholder-gray-500 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-3 py-2 border border-[#3e3e42] rounded bg-[#1e1e1e] text-[#cccccc] placeholder-[#858585] font-mono text-sm focus:ring-1 focus:ring-[#007acc] focus:border-[#007acc] transition-all resize-none"
             :placeholder="block.type === 'code' ? 'Enter code...' : 'Enter text...'"
+            style="line-height: 1.35;"
         ></textarea>
     </div>
 </template>
@@ -71,4 +72,11 @@ const updateLanguage = (event: Event) => {
     emit('update', props.index, { ...props.block, language: target.value });
 };
 </script>
+
+<style scoped>
+select option {
+    background-color: #1e1e1e;
+    color: #cccccc;
+}
+</style>
 
