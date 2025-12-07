@@ -18,6 +18,18 @@ class PostResource extends JsonResource
         $inlineIndex = [];
         
         if ($this->relationLoaded('snippets') && $this->snippets) {
+            \Log::debug("PostResource: All snippets for post {$this->id}", [
+                'snippets' => $this->snippets->map(function ($s) {
+                    return [
+                        'id' => $s->id,
+                        'post_id' => $s->post_id,
+                        'block_index' => $s->block_index,
+                        'allComments_count' => $s->relationLoaded('allComments') ? $s->allComments->count() : 0,
+                        'comments_count' => $s->relationLoaded('comments') ? $s->comments->count() : 0,
+                    ];
+                })->toArray(),
+            ]);
+            
             foreach ($this->snippets as $snippet) {
                 $snippetComments = $snippet->relationLoaded('allComments') 
                     ? $snippet->allComments 
@@ -25,6 +37,27 @@ class PostResource extends JsonResource
                 
                 $blockId = (string) $snippet->id;
                 $inlineIndex[$blockId] = [];
+                
+                // Debug: Log snippet comments loading
+                \Log::debug("Building inline index for snippet {$snippet->id}", [
+                    'snippet_id' => $snippet->id,
+                    'post_id' => $snippet->post_id,
+                    'block_index' => $snippet->block_index,
+                    'allComments_loaded' => $snippet->relationLoaded('allComments'),
+                    'comments_loaded' => $snippet->relationLoaded('comments'),
+                    'allComments_count' => $snippet->relationLoaded('allComments') ? $snippet->allComments->count() : 0,
+                    'comments_count' => $snippet->relationLoaded('comments') ? $snippet->comments->count() : 0,
+                    'snippetComments_count' => $snippetComments->count(),
+                    'raw_comments' => $snippetComments->map(function ($c) {
+                        return [
+                            'id' => $c->id,
+                            'snippet_id' => $c->snippet_id,
+                            'is_inline' => $c->is_inline,
+                            'start_line' => $c->start_line,
+                            'end_line' => $c->end_line,
+                        ];
+                    })->toArray(),
+                ]);
                 
                 foreach ($snippetComments as $comment) {
                     if ($comment->is_inline && $comment->start_line) {

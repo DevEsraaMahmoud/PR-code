@@ -66,6 +66,10 @@
                                     :is-feed="false"
                                     @line-clicked="handleLineClick"
                                 />
+                                <!-- Debug: Show block info -->
+                                <div v-if="false" class="text-xs text-gray-500 mt-2">
+                                    Block ID: {{ block.id }}, Type: {{ block.type }}, Index: {{ index }}
+                                </div>
                             </div>
                         </template>
                     </div>
@@ -147,10 +151,10 @@
 
         <!-- Inline Comment Popover -->
         <InlineCommentPopover
-            v-if="popoverVisible && selectedLine"
+            v-if="popoverVisible && selectedLine && activeThread"
             :visible="popoverVisible"
             :line-number="selectedLine"
-            :comments="getCommentsForLine(selectedLine)"
+            :comments="getCommentsForLine(selectedLine, activeThread?.blockId || null)"
             :position="popoverPosition"
             @close="closePopover"
             @submit-comment="handlePopoverSubmit"
@@ -352,15 +356,35 @@ const inlineCommentsIndex = computed(() => {
     
     // Also build index from snippets if available
     if (props.post?.snippets && Array.isArray(props.post.snippets)) {
+        console.log('Building index from snippets:', props.post.snippets.map((s: any) => ({
+            id: s.id,
+            block_index: s.block_index,
+            allCommentsLength: s.allComments?.length || 0,
+            commentsLength: s.comments?.length || 0,
+        })));
+        
         props.post.snippets.forEach((snippet: any) => {
             const snippetId = String(snippet.id);
             if (!convertedIndex[snippetId]) {
                 convertedIndex[snippetId] = {};
             }
             
-            const comments = snippet.comments || snippet.allComments || [];
+            const comments = snippet.allComments || snippet.comments || [];
+            console.log(`Building index for snippet ${snippetId} (block_index: ${snippet.block_index}):`, {
+                allCommentsLength: snippet.allComments?.length || 0,
+                commentsLength: snippet.comments?.length || 0,
+                totalComments: comments.length,
+                comments: comments.map((c: any) => ({
+                    id: c.id,
+                    snippet_id: c.snippet_id,
+                    is_inline: c.is_inline,
+                    start_line: c.start_line,
+                    end_line: c.end_line,
+                }))
+            });
+            
             comments.forEach((comment: any) => {
-                if (comment.is_inline && comment.start_line) {
+                if (comment.is_inline !== false && comment.start_line) {
                     const lineNum = String(comment.start_line);
                     convertedIndex[snippetId][lineNum] = (convertedIndex[snippetId][lineNum] || 0) + 1;
                     // Count replies too
@@ -371,6 +395,10 @@ const inlineCommentsIndex = computed(() => {
             });
         });
     }
+    
+    console.log('Final inlineCommentsIndex:', convertedIndex);
+    
+    console.log('Final inlineCommentsIndex:', convertedIndex);
     
     // Also build index from active threads to ensure we have current data
     if (activeThread.value && activeThread.value.blockId) {
@@ -419,10 +447,8 @@ function getInlineCommentsIndex(blockId: number | string | null): Record<string,
             }
         }
         
-        // If still no match, use first snippet's index
-        if (Object.keys(index).length === 0 && props.post.snippets.length > 0) {
-            index = inlineCommentsIndex.value[String(props.post.snippets[0].id)] || {};
-        }
+        // DO NOT fallback to first snippet - each snippet should have its own index
+        // If no match found, return empty index (no highlighting)
     }
     
     // Also check if we have thread data for this block
@@ -455,8 +481,27 @@ const generalComments = computed(() => {
 async function handleLineClick({ lineNumber, blockId, postId }: { lineNumber: number; blockId: number | string | null; postId: number | string }) {
     selectedLine.value = lineNumber;
     
-    // Load thread first to get existing comments (but don't open sidebar automatically)
+    // Load thread from API to get latest comments (but don't open sidebar automatically)
     await loadThread(lineNumber, blockId, postId);
+    
+    // After loading thread, check if we have comments in post data for this specific block
+    const existingComments = getCommentsForLine(lineNumber, blockId);
+    console.log('Existing comments from post data for block', blockId, ':', existingComments.length);
+    
+    // Ensure activeThread is set before showing popover
+    if (!activeThread.value) {
+        activeThread.value = {
+            lineNumber,
+            blockId,
+            postId,
+            messages: existingComments.length > 0 ? existingComments : [],
+            resolved: false,
+        };
+    } else if (activeThread.value.messages.length === 0 && existingComments.length > 0) {
+        // If API returned no messages but we have comments from post data, use those
+        console.log('Using comments from post data since API returned empty');
+        activeThread.value.messages = existingComments;
+    }
     
     // Show popover only (user can choose to view thread via button)
     await nextTick();
@@ -500,10 +545,23 @@ function handleViewThread() {
 }
 
 async function loadThread(lineNumber: number, blockId: number | string | null, postId: number | string) {
-    if (!blockId) return;
+    if (!blockId) {
+        console.warn('loadThread: No blockId provided');
+        activeThread.value = {
+            lineNumber,
+            blockId: null,
+            postId,
+            messages: [],
+            resolved: false,
+        };
+        return;
+    }
     
     try {
-        const response = await fetch(`/posts/${postId}/blocks/${blockId}/threads?line=${lineNumber}`, {
+        const url = `/posts/${postId}/blocks/${blockId}/threads?line=${lineNumber}`;
+        console.log('Loading thread from:', url);
+        
+        const response = await fetch(url, {
             headers: {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
@@ -512,14 +570,21 @@ async function loadThread(lineNumber: number, blockId: number | string | null, p
         
         if (response.ok) {
             const data = await response.json();
-            console.log('Thread loaded:', data); // Debug log
+            console.log('Thread loaded:', data);
+            console.log('Messages count:', Array.isArray(data.messages) ? data.messages.length : 0);
+            
+            const messages = Array.isArray(data.messages) ? data.messages : (Array.isArray(data) ? data : []);
+            
             activeThread.value = {
                 lineNumber,
                 blockId,
                 postId,
-                messages: Array.isArray(data.messages) ? data.messages : (Array.isArray(data) ? data : []),
+                messages: messages,
                 resolved: data.resolved || false,
             };
+            
+            console.log('activeThread set:', activeThread.value);
+            console.log('activeThread messages:', activeThread.value.messages);
             
             // The computed inlineCommentsIndex will automatically pick up the thread data
         } else {
@@ -556,12 +621,141 @@ watch(activeThread, (newThread) => {
     }
 }, { deep: true });
 
-function getCommentsForLine(lineNumber: number | null): any[] {
-    if (!lineNumber || !activeThread.value) return [];
-    // Return all messages for this line (both parent comments and replies)
-    return activeThread.value.messages.filter((m: any) => 
-        m.line_number === lineNumber || m.line_number === null || m.line_number === undefined
-    );
+function getCommentsForLine(lineNumber: number | null, blockId: number | string | null = null): any[] {
+    if (!lineNumber) {
+        console.log('getCommentsForLine: No lineNumber provided');
+        return [];
+    }
+    
+    console.log('getCommentsForLine called for line:', lineNumber, 'blockId:', blockId);
+    console.log('activeThread:', activeThread.value);
+    console.log('post.snippets:', props.post?.snippets);
+    
+    // First priority: If activeThread exists and matches the current line AND blockId, return its messages
+    if (activeThread.value && activeThread.value.lineNumber === lineNumber) {
+        // Check if blockId matches (if provided)
+        if (!blockId || String(activeThread.value.blockId) === String(blockId)) {
+            const messages = activeThread.value.messages || [];
+            console.log('Returning messages from activeThread:', messages.length);
+            if (messages.length > 0) {
+                return messages;
+            }
+        }
+    }
+    
+    // Second priority: Try to find comments from the post data (snippets) - ONLY for the specific blockId
+    if (props.post?.snippets && Array.isArray(props.post.snippets)) {
+        const allComments: any[] = [];
+        
+        // Find the specific snippet that matches blockId
+        let targetSnippet: any = null;
+        if (blockId) {
+            const blockIdStr = String(blockId);
+            console.log('Looking for snippet with blockId:', blockIdStr);
+            console.log('Available snippets:', props.post.snippets.map((s: any) => ({ id: s.id, block_index: s.block_index })));
+            
+            // Try to find by snippet ID
+            targetSnippet = props.post.snippets.find((s: any) => String(s.id) === blockIdStr);
+            console.log('Found by ID:', targetSnippet ? targetSnippet.id : 'none');
+            
+            // If not found and blockId is like "code-1", try to find by block_index
+            if (!targetSnippet && blockIdStr.startsWith('code-')) {
+                const blockIndex = parseInt(blockIdStr.replace('code-', '')) - 1;
+                console.log('Trying to find by block_index:', blockIndex);
+                targetSnippet = props.post.snippets.find((s: any) => s.block_index === blockIndex);
+                console.log('Found by block_index:', targetSnippet ? targetSnippet.id : 'none');
+            }
+            
+            // If still not found, try to find by matching with postBlocks
+            if (!targetSnippet && postBlocks.value.length > 0) {
+                const block = postBlocks.value.find((b: any) => String(b.id) === blockIdStr);
+                if (block && block.type === 'code') {
+                    // Try to find snippet by block_index
+                    const blockIndex = postBlocks.value.indexOf(block);
+                    targetSnippet = props.post.snippets.find((s: any) => s.block_index === blockIndex);
+                    console.log('Found by postBlocks index:', targetSnippet ? targetSnippet.id : 'none');
+                }
+            }
+        }
+        
+        // If we found a specific snippet, only search in that one
+        // If blockId is provided but snippet not found, don't search (to avoid wrong results)
+        const snippetsToSearch = targetSnippet ? [targetSnippet] : (blockId ? [] : props.post.snippets);
+        
+        if (blockId && !targetSnippet) {
+            console.warn('Could not find snippet for blockId:', blockId);
+            console.log('Available snippets:', props.post.snippets.map((s: any) => ({ 
+                id: s.id, 
+                block_index: s.block_index,
+                comments_count: (s.allComments || s.comments || []).length 
+            })));
+        }
+        
+        console.log('Searching in snippets:', snippetsToSearch.map((s: any) => s.id));
+        
+        snippetsToSearch.forEach((snippet: any) => {
+            // Try both 'comments' and 'allComments' properties
+            const comments = snippet.allComments || snippet.comments || [];
+            console.log(`Snippet ${snippet.id} (block_index: ${snippet.block_index}) has ${comments.length} total comments`);
+            console.log(`Snippet ${snippet.id} raw data:`, {
+                hasAllComments: !!snippet.allComments,
+                hasComments: !!snippet.comments,
+                allCommentsLength: snippet.allComments?.length || 0,
+                commentsLength: snippet.comments?.length || 0,
+                allComments: snippet.allComments,
+                comments: snippet.comments
+            });
+            
+            // Filter inline comments only
+            const inlineComments = comments.filter((c: any) => c.is_inline !== false);
+            console.log(`Snippet ${snippet.id} has ${inlineComments.length} inline comments (after filtering)`);
+            
+            inlineComments.forEach((comment: any) => {
+                // Check if comment matches the line
+                if (comment.start_line && comment.end_line) {
+                    console.log(`  Comment ${comment.id}: start_line=${comment.start_line}, end_line=${comment.end_line}, checking line ${lineNumber}`);
+                    if (comment.start_line <= lineNumber && comment.end_line >= lineNumber) {
+                        console.log(`  ✓ Comment ${comment.id} matches line ${lineNumber}`);
+                        // Format comment to match expected structure
+                        const formattedComment = {
+                            id: comment.id,
+                            user: comment.user || { id: null, name: 'Anonymous', avatar_url: null },
+                            text: comment.body || comment.text || '',
+                            body: comment.body || comment.text || '',
+                            created_at: comment.created_at,
+                            edited_at: comment.edited_at,
+                            line_number: comment.start_line,
+                        };
+                        allComments.push(formattedComment);
+                        
+                        // Add replies if they exist
+                        if (comment.replies && Array.isArray(comment.replies)) {
+                            comment.replies.forEach((reply: any) => {
+                                const formattedReply = {
+                                    id: reply.id,
+                                    user: reply.user || { id: null, name: 'Anonymous', avatar_url: null },
+                                    text: reply.body || reply.text || '',
+                                    body: reply.body || reply.text || '',
+                                    created_at: reply.created_at,
+                                    edited_at: reply.edited_at,
+                                    line_number: reply.start_line || comment.start_line,
+                                    parent_id: comment.id,
+                                };
+                                allComments.push(formattedReply);
+                            });
+                        }
+                    }
+                }
+            });
+        });
+        console.log('Returning comments from post data for block', blockId, ':', allComments.length);
+        if (allComments.length > 0) {
+            return allComments;
+        }
+    }
+    
+    console.log('No comments found for line:', lineNumber, 'blockId:', blockId);
+    return [];
 }
 
 function closePopover() {

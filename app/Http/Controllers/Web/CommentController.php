@@ -157,6 +157,22 @@ class CommentController extends Controller
             // Get all comments for this snippet
             $allComments = $this->commentRepository->getAllBySnippet($snippetId);
             
+            \Log::debug("Loading threads for snippet {$snippetId}, line {$line}", [
+                'snippet_id' => $snippetId,
+                'line' => $line,
+                'all_comments_count' => $allComments->count(),
+                'comments' => $allComments->map(function ($comment) {
+                    return [
+                        'id' => $comment->id,
+                        'snippet_id' => $comment->snippet_id,
+                        'is_inline' => $comment->is_inline,
+                        'start_line' => $comment->start_line,
+                        'end_line' => $comment->end_line,
+                        'parent_id' => $comment->parent_id,
+                    ];
+                })->toArray(),
+            ]);
+            
             // Filter inline comments that match the line number
             $comments = $allComments->filter(function ($comment) use ($line) {
                 if (!$comment->is_inline) {
@@ -358,12 +374,22 @@ class CommentController extends Controller
      */
     private function resolveSnippetId(string $blockId, string $postId): ?int
     {
+        \Log::debug("resolveSnippetId called", [
+            'blockId' => $blockId,
+            'postId' => $postId,
+        ]);
+        
         // If it's numeric, treat it as snippet ID
         if (is_numeric($blockId)) {
             $snippet = $this->snippetRepository->find((int) $blockId);
             if ($snippet && $snippet->post_id == $postId) {
+                \Log::debug("Found snippet by ID", ['snippet_id' => $snippet->id]);
                 return $snippet->id;
             }
+            \Log::debug("Snippet not found or post_id mismatch", [
+                'snippet' => $snippet ? ['id' => $snippet->id, 'post_id' => $snippet->post_id] : null,
+                'postId' => $postId,
+            ]);
         }
 
         // If it starts with "code-", try to extract index or find by block_index
@@ -373,7 +399,12 @@ class CommentController extends Controller
                 // Try to find snippet by block_index
                 $snippets = $this->snippetRepository->findByPost((int) $postId);
                 $index = (int) $parts[1] - 1; // Convert to 0-based index
+                \Log::debug("Looking for snippet by block_index", [
+                    'block_index' => $index,
+                    'available_snippets' => $snippets->map(fn($s) => ['id' => $s->id, 'block_index' => $s->block_index])->toArray(),
+                ]);
                 if (isset($snippets[$index])) {
+                    \Log::debug("Found snippet by block_index", ['snippet_id' => $snippets[$index]->id]);
                     return $snippets[$index]->id;
                 }
             }
@@ -382,9 +413,11 @@ class CommentController extends Controller
         // Try to find first snippet for this post
         $snippets = $this->snippetRepository->findByPost((int) $postId);
         if ($snippets->isNotEmpty()) {
+            \Log::debug("Using first snippet as fallback", ['snippet_id' => $snippets->first()->id]);
             return $snippets->first()->id;
         }
 
+        \Log::debug("No snippet found");
         return null;
     }
 }

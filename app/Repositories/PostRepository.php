@@ -23,6 +23,9 @@ class PostRepository
             'snippets.allComments' => function ($query) {
                 $query->with(['user', 'replies.user'])->orderBy('start_line');
             },
+            'snippets.comments' => function ($query) {
+                $query->with(['user', 'replies.user'])->orderBy('start_line');
+            },
             'tags',
             'comments' => function ($query) {
                 $query->whereNull('parent_id')->with(['user', 'replies.user'])->orderBy('created_at');
@@ -42,6 +45,9 @@ class PostRepository
                 $query->orderBy('block_index');
             },
             'snippets.allComments' => function ($query) {
+                $query->with(['user', 'replies.user'])->orderBy('start_line');
+            },
+            'snippets.comments' => function ($query) {
                 $query->with(['user', 'replies.user'])->orderBy('start_line');
             },
             'tags',

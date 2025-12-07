@@ -103,7 +103,14 @@ class PostService
 
         // Ensure all relationships are loaded
         if (!$post->relationLoaded('snippets')) {
-            $post->load('snippets.allComments.user', 'snippets.allComments.replies.user');
+            $post->load([
+                'snippets.allComments' => function ($query) {
+                    $query->with(['user', 'replies.user'])->orderBy('start_line');
+                },
+                'snippets.comments' => function ($query) {
+                    $query->with(['user', 'replies.user'])->orderBy('start_line');
+                }
+            ]);
         }
         if (!$post->relationLoaded('comments')) {
             $post->load('comments.user', 'comments.replies.user');
