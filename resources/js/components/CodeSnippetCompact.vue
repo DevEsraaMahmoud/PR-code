@@ -14,7 +14,7 @@
       :class="{ 'max-h-[220px] overflow-y-hidden': isFeed && !expanded }"
       :style="{ 'mask-image': isFeed && !expanded ? 'linear-gradient(to bottom, black 0%, black 85%, transparent 100%)' : 'none' }"
     >
-      <pre class="m-0 p-0 text-xs font-mono leading-tight"><code class="block">
+      <pre class="m-0 p-0 text-xs font-mono" style="line-height: 1.35;"><code class="block">
         <div
           v-for="(line, index) in codeLines"
           :key="`line-${index + 1}`"
@@ -33,7 +33,7 @@
         >
           <!-- Line Number Column -->
           <div
-            class="line-number-column flex-shrink-0 px-3 py-1 text-gray-400 hover:text-gray-300 text-right select-none min-w-[3.5rem] cursor-pointer group relative"
+            class="line-number-column flex-shrink-0 px-3 py-0 text-gray-400 hover:text-gray-300 text-right select-none min-w-[3.5rem] cursor-pointer group relative"
             :aria-label="`Line ${index + 1}${getCommentCount(index + 1) > 0 ? `, ${getCommentCount(index + 1)} comment${getCommentCount(index + 1) > 1 ? 's' : ''}` : ''}`"
             role="button"
             tabindex="0"
@@ -59,7 +59,8 @@
           
           <!-- Code Content -->
           <div
-            class="code-content flex-1 px-4 py-1 text-gray-100 overflow-x-auto text-sm leading-relaxed"
+            class="code-content flex-1 px-4 py-0 text-gray-100 overflow-x-auto text-sm"
+            style="line-height: 1.35;"
             v-html="line"
           ></div>
         </div>

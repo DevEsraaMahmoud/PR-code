@@ -39,61 +39,61 @@
             <div class="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6">
                 <!-- Left Column: Post Content -->
                 <div class="space-y-6">
-                    <!-- Render blocks in order -->
-                    <div v-if="postBlocks && postBlocks.length > 0" class="space-y-6">
-                        <template v-for="(block, index) in postBlocks" :key="`block-${block.id || index}`">
-                            <!-- Text Block -->
-                            <div
-                                v-if="block.type === 'text' && block.content"
-                                class="bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-700 hover:shadow-md transition-shadow"
-                            >
-                                <div class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap leading-relaxed">
+                    <!-- Render blocks in order - Single unified block -->
+                    <div v-if="postBlocks && postBlocks.length > 0" class="bg-gray-800 rounded-xl shadow-sm border border-gray-700 hover:shadow-md transition-shadow overflow-hidden">
+                        <div class="p-6 space-y-4">
+                            <template v-for="(block, index) in postBlocks" :key="`block-${block.id || index}`">
+                                <!-- Text Block -->
+                                <div
+                                    v-if="block.type === 'text' && block.content"
+                                    class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap leading-relaxed"
+                                >
                                     {{ block.content }}
                                 </div>
+                                
+                                <!-- Code Block -->
+                                <div
+                                    v-else-if="block.type === 'code' && block.content"
+                                    class="-mx-6"
+                                >
+                                    <CodeSnippetCompact
+                                        :code="block.content || ''"
+                                        :language="block.language || 'text'"
+                                        :block-id="block.id"
+                                        :post-id="post.id"
+                                        :inline-comments-index="getInlineCommentsIndex(block.id)"
+                                        :is-feed="false"
+                                        @line-clicked="handleLineClick"
+                                    />
+                                    <!-- Debug: Show block info -->
+                                    <div v-if="false" class="text-xs text-gray-500 mt-2 px-6">
+                                        Block ID: {{ block.id }}, Type: {{ block.type }}, Index: {{ index }}
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Fallback: Old format - Single unified block -->
+                    <div v-else class="bg-gray-800 rounded-xl shadow-md border border-gray-700 overflow-hidden">
+                        <div class="p-6 space-y-4">
+                            <!-- Rich text body -->
+                            <div v-if="postBodyHtml" class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap">
+                                {{ postBodyHtml }}
                             </div>
-                            
+
                             <!-- Code Block -->
-                            <div
-                                v-else-if="block.type === 'code' && block.content"
-                                class="bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-700 hover:shadow-md transition-shadow"
-                            >
+                            <div v-if="postCode && postCode.content && postCode.content.trim()" class="-mx-6">
                                 <CodeSnippetCompact
-                                    :code="block.content || ''"
-                                    :language="block.language || 'text'"
-                                    :block-id="block.id"
+                                    :code="postCode.content"
+                                    :language="postCode.language || 'text'"
+                                    :block-id="postSnippetId || postCodeBlockId"
                                     :post-id="post.id"
-                                    :inline-comments-index="getInlineCommentsIndex(block.id)"
+                                    :inline-comments-index="getInlineCommentsIndex(postSnippetId || postCodeBlockId)"
                                     :is-feed="false"
                                     @line-clicked="handleLineClick"
                                 />
-                                <!-- Debug: Show block info -->
-                                <div v-if="false" class="text-xs text-gray-500 mt-2">
-                                    Block ID: {{ block.id }}, Type: {{ block.type }}, Index: {{ index }}
-                                </div>
                             </div>
-                        </template>
-                    </div>
-
-                    <!-- Fallback: Old format -->
-                    <div v-else class="space-y-6">
-                        <!-- Rich text body -->
-                        <div v-if="postBodyHtml" class="bg-gray-800 rounded-xl shadow-md p-6 border border-gray-700">
-                            <div class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap">
-                                {{ postBodyHtml }}
-                            </div>
-                        </div>
-
-                        <!-- Code Block -->
-                        <div v-if="postCode && postCode.content && postCode.content.trim()" class="bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-700">
-                            <CodeSnippetCompact
-                                :code="postCode.content"
-                                :language="postCode.language || 'text'"
-                                :block-id="postSnippetId || postCodeBlockId"
-                                :post-id="post.id"
-                                :inline-comments-index="getInlineCommentsIndex(postSnippetId || postCodeBlockId)"
-                                :is-feed="false"
-                                @line-clicked="handleLineClick"
-                            />
                         </div>
                     </div>
 

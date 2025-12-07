@@ -1,27 +1,26 @@
 <template>
   <article
-    class="post-card bg-gray-800 rounded-lg border border-gray-700 hover:shadow-lg transition-shadow cursor-pointer"
+    class="post-card bg-gray-800 rounded-xl border border-gray-700 hover:border-gray-600 transition-all cursor-pointer"
     @click="navigateToPost"
   >
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-700">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <img
-            :src="getAvatarUrl(post.author?.avatar_url, post.author?.name, 40)"
-            :alt="post.author?.name || 'Author'"
-            class="w-10 h-10 rounded-full"
-            @error="(e) => { (e.target as HTMLImageElement).src = generateFallbackAvatar(post.author?.name); }"
-          />
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-semibold text-gray-100">
-                {{ post.author?.name || 'Anonymous' }}
-              </span>
-              <span v-if="post.author?.handle" class="text-sm text-gray-400">
-                @{{ post.author.handle }}
-              </span>
-            </div>
+    <div class="px-4 py-3 border-b border-gray-700">
+      <div class="flex items-center gap-3">
+        <img
+          :src="getAvatarUrl(post.author?.avatar_url, post.author?.name, 40)"
+          :alt="post.author?.name || 'Author'"
+          class="w-10 h-10 rounded-full flex-shrink-0"
+          @error="(e) => { (e.target as HTMLImageElement).src = generateFallbackAvatar(post.author?.name); }"
+        />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-gray-100 truncate">
+              {{ post.author?.name || 'Anonymous' }}
+            </span>
+            <span v-if="post.author?.handle" class="text-sm text-gray-400 truncate">
+              @{{ post.author.handle }}
+            </span>
+            <span class="text-gray-500">·</span>
             <span class="text-xs text-gray-400">
               {{ formatDate(post.created_at) }}
             </span>
@@ -31,31 +30,25 @@
     </div>
 
     <!-- Content -->
-    <div class="px-6 py-4">
-      <h2 class="text-xl font-semibold text-gray-100 mb-2">
+    <div class="px-4 py-3">
+      <h2 class="text-lg font-semibold text-gray-100 mb-2 hover:text-blue-400 transition-colors">
         {{ post.title }}
       </h2>
       
-      <!-- Rich text excerpt -->
-      <div
-        class="text-gray-300 mb-4 line-clamp-3 prose prose-sm prose-invert max-w-none"
-        v-html="truncateHtml(post.body || post.body_html || '')"
-      ></div>
-
       <!-- Render blocks in order: text blocks and code blocks -->
-      <div v-if="postBlocks && postBlocks.length > 0" class="space-y-3 mb-4">
+      <div v-if="postBlocks && postBlocks.length > 0" class="space-y-3">
         <template v-for="(block, index) in postBlocks" :key="`block-${index}`">
           <!-- Text Block -->
           <div
             v-if="block.type === 'text'"
-            class="text-gray-300 text-sm whitespace-pre-wrap"
-            v-html="truncateHtml(block.content || '')"
+            class="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed"
+            v-html="truncateHtml(block.content || '', 300)"
           ></div>
           
-          <!-- Code Block -->
+          <!-- Code Block - Prominently displayed -->
           <div
             v-else-if="block.type === 'code'"
-            class="mb-4"
+            class="my-3 -mx-4"
             @click.stop
           >
             <CodeSnippetCompact
@@ -74,7 +67,7 @@
       <!-- Fallback: Code preview (for old format) -->
       <div
         v-else-if="codePreview"
-        class="mb-4 -mx-2 sm:mx-0"
+        class="my-3 -mx-4"
         @click.stop
       >
         <CodeSnippetCompact
@@ -87,74 +80,75 @@
           @line-clicked="handleLineClick"
         />
       </div>
+      
+      <!-- Fallback: Text only -->
+      <div
+        v-else-if="post.body || post.body_html"
+        class="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed line-clamp-4"
+        v-html="truncateHtml(post.body || post.body_html || '', 300)"
+      ></div>
     </div>
 
-    <!-- Footer -->
-    <div class="px-6 py-4 border-t border-gray-700">
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center gap-3 flex-wrap">
+    <!-- Footer - Social Media Style -->
+    <div class="px-4 py-3 border-t border-gray-700">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-6">
           <!-- Likes -->
-          <div class="flex items-center gap-1 text-sm text-gray-400" title="Likes">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                clip-rule="evenodd"
-              />
+          <button
+            class="flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-400 transition-colors group"
+            title="Likes"
+            @click.stop
+          >
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span>{{ post.stats?.likes || 0 }}</span>
-          </div>
+            <span class="font-medium">{{ post.stats?.likes || 0 }}</span>
+          </button>
           
-          <!-- Inline Comments Count -->
+          <!-- Comments -->
+          <button
+            class="flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-400 transition-colors group"
+            title="Comments"
+            @click.stop
+          >
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <span class="font-medium">{{ (post.stats?.comments || 0) + inlineCommentsCount }}</span>
+          </button>
+          
+          <!-- Inline Comments Badge -->
           <div 
             v-if="inlineCommentsCount > 0"
-            class="flex items-center gap-1 text-sm text-yellow-600 dark:text-yellow-400 font-medium" 
-            title="Inline comments on code lines"
+            class="flex items-center gap-1.5 text-sm text-yellow-400 font-medium" 
+            title="Inline comments on code"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>{{ inlineCommentsCount }}</span>
           </div>
           
-          <!-- General Comments Count -->
-          <div 
-            class="flex items-center gap-1 text-sm text-gray-400" 
-            title="General comments"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            <span>{{ generalCommentsCount }}</span>
-          </div>
-          
-          <!-- Lines Count (if code exists) -->
+          <!-- Code Lines Badge -->
           <div 
             v-if="totalLinesCount > 0"
-            class="flex items-center gap-1 text-sm text-gray-500" 
-            title="Total lines of code"
+            class="flex items-center gap-1.5 text-sm text-gray-500" 
+            title="Lines of code"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
-            <span>{{ totalLinesCount }} lines</span>
-          </div>
-          
-          <!-- Views -->
-          <div class="flex items-center gap-1 text-sm text-gray-400" title="Views">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span>{{ post.stats?.views || 0 }}</span>
+            <span>{{ totalLinesCount }}</span>
           </div>
         </div>
+        
+        <!-- View Post Link -->
         <Link
           :href="`/posts/${post.id}`"
-          class="text-sm text-blue-400 hover:underline font-medium"
+          class="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
           @click.stop
         >
-          Read more →
+          View →
         </Link>
       </div>
     </div>
@@ -329,7 +323,13 @@ function truncateHtml(html, maxLength = 200) {
   if (text.length <= maxLength) return html;
   
   // Simple truncation (for production, use a proper HTML truncation library)
-  return html.substring(0, maxLength) + '...';
+  const truncated = html.substring(0, maxLength);
+  // Try to truncate at word boundary
+  const lastSpace = truncated.lastIndexOf(' ');
+  if (lastSpace > maxLength * 0.8) {
+    return truncated.substring(0, lastSpace) + '...';
+  }
+  return truncated + '...';
 }
 
 
