@@ -177,13 +177,13 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import CodeSnippetCompact from '@/Components/CodeSnippetCompact.vue';
-import InlineThreadSidebar from '@/Components/InlineThreadSidebar.vue';
-import InlineThreadsPanel from '@/Components/InlineThreadsPanel.vue';
-import InlineCommentPopover from '@/Components/CodeBlock/InlineCommentPopover.vue';
-import CommentList from '@/Components/Comments/CommentList.vue';
-import LikeButton from '@/Components/Controls/LikeButton.vue';
-import ShareButton from '@/Components/Controls/ShareButton.vue';
+import CodeSnippetCompact from '@/components/CodeSnippetCompact.vue';
+import InlineThreadSidebar from '@/components/InlineThreadSidebar.vue';
+import InlineThreadsPanel from '@/components/InlineThreadsPanel.vue';
+import InlineCommentPopover from '@/components/CodeBlock/InlineCommentPopover.vue';
+import CommentList from '@/components/Comments/CommentList.vue';
+import LikeButton from '@/components/Controls/LikeButton.vue';
+import ShareButton from '@/components/Controls/ShareButton.vue';
 import { router, Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps<{

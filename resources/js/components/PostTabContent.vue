@@ -117,7 +117,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import CodeSnippetCompact from '@/Components/CodeSnippetCompact.vue';
+import CodeSnippetCompact from '@/components/CodeSnippetCompact.vue';
 import type { Tab } from '@/composables/useTabs';
 
 const props = defineProps<{

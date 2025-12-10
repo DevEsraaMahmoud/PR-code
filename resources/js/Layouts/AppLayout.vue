@@ -1,7 +1,7 @@
 <template>
     <div class="vscode-layout h-screen flex flex-col overflow-hidden bg-[#1e1e1e]">
         <!-- Top Navigation Bar (LinkedIn Style + Browser Search) -->
-        <div class="top-nav-bar bg-[#283e4a] text-[#e7e9ec] h-14 flex items-center px-4 border-b border-[#1c2a33] flex-shrink-0 shadow-sm">
+        <div class="top-nav-bar text-[#e7e9ec] h-14 flex items-center px-4 border-b border-[#1c2a33] flex-shrink-0 shadow-sm">
             <!-- Logo -->
             <Link href="/" class="flex items-center mr-4 flex-shrink-0">
                 <div class="w-9 h-9 bg-[#0077b5] rounded flex items-center justify-center">
@@ -435,7 +435,7 @@
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, provide, watch, onMounted, onUnmounted } from 'vue';
 import { useTabs, type Tab } from '@/composables/useTabs';
-import PostTabContent from '@/Components/PostTabContent.vue';
+import PostTabContent from '@/components/PostTabContent.vue';
 
 const page = usePage();
 const sidebarCollapsed = ref(false);

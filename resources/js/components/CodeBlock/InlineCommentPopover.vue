@@ -188,6 +188,9 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const commentText = ref('');
 const submitting = ref(false);
 const showFullThread = ref(false);
+const reactions = ref<Record<string, Record<string, number>>>({}); // { commentId: { emoji: count } }
+const userReactions = ref<Record<string, string[]>>({}); // { commentId: [emoji1, emoji2] }
+const showReactionPickerFor = ref<string | null>(null);
 
 onMounted(() => {
   console.log('InlineCommentPopover mounted, visible:', props.visible, 'lineNumber:', props.lineNumber);

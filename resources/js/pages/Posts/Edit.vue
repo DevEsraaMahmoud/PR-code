@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import CodeBlockEditor from '@/Components/CodeBlockEditor.vue';
+import CodeBlockEditor from '@/components/CodeBlockEditor.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{

@@ -1,239 +1,318 @@
-# PR Code Post with Inline Comments - Implementation Summary
+# PR Code Social - Implementation Summary
 
 ## Overview
-This implementation adds a comprehensive PR code review feature with inline comments, syntax highlighting using Shiki, and a responsive UI that works on both desktop and mobile devices.
 
-## Files Created/Modified
+This document summarizes the modernization and updates made to the Laravel + Inertia + Vue 3 project for PR Code Social features.
 
-### Backend (Laravel)
+## Components Created/Updated
 
-#### API Resources
-- **app/Http/Resources/PostResource.php** - Updated to include inline_comments_index structure
-- **app/Http/Resources/CommentResource.php** - Updated to include is_inline, edited_at, and likes_count
-- **app/Http/Resources/SnippetResource.php** - Updated to include allComments relationship
+### ✅ Core Components (Priority 1)
 
-#### Controllers
-- **app/Http/Controllers/Api/CommentController.php** - Added `storeInlineComment()` and `updateInlineComment()` methods
-- **app/Http/Controllers/Web/PostController.php** - Updated to use PostResource
+#### 1. CodeViewer.vue
+**Location**: `resources/js/Components/CodeViewer.vue`
 
-#### Services & Repositories
-- **app/Services/PostService.php** - Updated to ensure all relationships are loaded
-- **app/Repositories/PostRepository.php** - Updated to load comments and snippets with proper relationships
+**Features Implemented**:
+- ✅ Prism.js syntax highlighting (VS Code Dark+ theme)
+- ✅ Line numbers in gutter (clickable)
+- ✅ Line highlighting for comments (yellow accent border)
+- ✅ Hover tooltips showing comment excerpts and authors
+- ✅ Copy button (copies entire snippet)
+- ✅ Keyboard navigation (Arrow Up/Down, Enter to open composer)
+- ✅ Accessibility (ARIA labels, keyboard support)
+- ✅ Props: snippet, highlightedLines, inlineCommentsIndex, isAuthenticated
+- ✅ Events: lineSelected, copySucceeded, openDiffRequested
 
-#### Routes
-- **routes/api.php** - Added routes for inline comments:
-  - `POST /api/posts/{id}/inline-comments`
-  - `PATCH /api/inline-comments/{id}`
+**Status**: Complete
 
-#### Seeders
-- **database/seeders/PostSeeder.php** - Created seeder with sample post, PHP code snippet, inline comments, and general comments
-- **database/seeders/DatabaseSeeder.php** - Updated to call PostSeeder
+#### 2. InlineCommentPanel.vue
+**Location**: `resources/js/Components/InlineCommentPanel.vue`
 
-#### Tests
-- **tests/Feature/InlineCommentTest.php** - Feature tests for inline comment endpoints
-- **tests/Feature/PostTest.php** - Updated to test inline_comments_index in GET response
+**Features Implemented**:
+- ✅ Right-side collapsible panel (not popover)
+- ✅ Lists all threads for current snippet
+- ✅ Shows line number, author, excerpt, resolved status, reactions count
+- ✅ Clicking thread scrolls/highlights corresponding line
+- ✅ Actions: reply, resolve/unresolve, edit, delete, react
+- ✅ Uses Inertia form submissions
 
-### Frontend (Vue 3 + Inertia.js)
+**Status**: Complete
 
-#### Components
-- **resources/js/components/CodeViewer.vue** - Completely refactored with Shiki highlighting:
-  - Line numbers with clickable gutter
-  - Inline comment bubbles on lines with comments
-  - Emits `line-selected` event with line number and comments
-  - Small font size (text-xs) for compact display
-  - VSCode-like dark theme
+#### 3. CommentThread.vue
+**Location**: `resources/js/Components/CommentThread.vue`
 
-- **resources/js/components/InlineCommentBubble.vue** - New component:
-  - Small clickable dot/bubble in gutter showing comment count
-  - Accessible with aria-labels
+**Features Implemented**:
+- ✅ Renders single thread with nested replies
+- ✅ Optimistic UI for posting replies
+- ✅ Shows pending network request status
+- ✅ Error fallback with rollback
+- ✅ Resolve/unresolve toggle
+- ✅ Edit/delete for owners
+- ✅ Reactions integration
 
-- **resources/js/components/InlineCommentsPanel.vue** - New component:
-  - Desktop: Side panel (sticky)
-  - Mobile: Bottom sheet with backdrop
-  - Shows comments for selected line
-  - Form to add new inline comments
-  - Optimistic UI updates
-  - Reply support (1-level)
+**Status**: Complete
 
-- **resources/js/components/GeneralComments.vue** - New component:
-  - List of general (non-inline) comments
-  - Threaded replies (1-level)
-  - Add comment form
-  - Edit/Delete actions
+### ✅ Supporting Components (Priority 2-4)
 
-- **resources/js/components/PostBlock.vue** - New component:
-  - Combines text blocks and code blocks
-  - Handles inline comments index per snippet
-  - Emits line-selected events
+#### 4. FeedList.vue
+**Location**: `resources/js/Components/FeedList.vue`
 
-#### Pages
-- **resources/js/Pages/Posts/Show.vue** - Completely refactored:
-  - Uses new component structure
-  - Grid layout: 2/3 content, 1/3 sidebar (desktop)
-  - Mobile: Full-width content, bottom sheet for inline comments
-  - Smooth transitions for panel open/close
+**Features Implemented**:
+- ✅ Sorting (top, recent, trending) via query params
+- ✅ Infinite scroll using IntersectionObserver
+- ✅ Uses Inertia.visit for filter/sort changes
+- ✅ Preserves scroll position
 
-#### Utilities
-- **resources/js/utils/shiki-init.ts** - Shiki initialization utility:
-  - Lazy loading of highlighter
-  - Language mapping
-  - Error handling with fallback
+**Status**: Complete
 
-### Dependencies
-- **package.json** - Added `shiki` package
+#### 5. PostEditor.vue
+**Location**: `resources/js/Components/PostEditor.vue`
 
-## API Endpoints
+**Features Implemented**:
+- ✅ WYSIWYG/Markdown editor area for text
+- ✅ Code snippet composer
+- ✅ Language selection
+- ✅ Paste content / upload file
+- ✅ Preview (opens CodeViewer)
+- ✅ Draft autosave to localStorage
+- ✅ Calls POST /api/v1/posts via Inertia.post
 
-### GET /api/posts/{id}
-Returns post with:
-- `snippets` - Array of code snippets
-- `comments` - Array of general comments
-- `inline_comments_index` - Object mapping line numbers to comment arrays: `{ 4: [comment1, comment2], 9: [comment3] }`
+**Status**: Complete
 
-### POST /api/posts/{id}/inline-comments
-Creates an inline comment. Body:
-```json
-{
-  "snippet_id": 1,
-  "start_line": 4,
-  "end_line": 4,
-  "body": "Comment text",
-  "is_inline": true
-}
+#### 6. Reactions.vue
+**Location**: `resources/js/Components/Reactions.vue`
+
+**Features Implemented**:
+- ✅ Generic component for posts and comments
+- ✅ Types: like, love, wow, eyes
+- ✅ Optimistic UI update
+- ✅ Rollback on failure
+- ✅ Emits reaction-changed event
+
+**Status**: Complete
+
+#### 7. NotificationsDropdown.vue
+**Location**: `resources/js/Components/NotificationsDropdown.vue`
+
+**Features Implemented**:
+- ✅ Dropdown showing latest notifications
+- ✅ Mark as read/unread (PATCH)
+- ✅ "View all" goes to Notifications page
+- ✅ Unread count badge
+
+**Status**: Complete
+
+### ✅ Pages Updated
+
+#### 8. Feed.vue
+**Location**: `resources/js/Pages/Feed.vue`
+
+**Updates**:
+- ✅ Uses updated FeedList component
+- ✅ Supports sorting and infinite scroll
+- ✅ Inertia navigation
+
+**Status**: Complete
+
+#### 9. Post/Show.vue
+**Location**: `resources/js/Pages/Posts/Show.vue`
+
+**Note**: This file already exists and uses CodeSnippetCompact. To fully integrate:
+- Update to use CodeViewer component
+- Add InlineCommentPanel on the right
+- Wire up event handlers
+
+**Status**: Needs integration (file exists, needs updates)
+
+### ✅ Composables
+
+#### 10. useCodeViewerEvents.ts
+**Location**: `resources/js/composables/useCodeViewerEvents.ts`
+
+**Features**:
+- ✅ Event bus for CodeViewer ↔ InlineCommentPanel communication
+- ✅ API helpers for comments (create, update, delete, resolve)
+- ✅ Type-safe event handling
+
+**Status**: Complete
+
+### ✅ Tests
+
+#### 11. CodeViewer.spec.js
+**Location**: `tests/unit/CodeViewer.spec.js`
+
+**Coverage**:
+- ✅ Renders code with line numbers
+- ✅ Emits lineSelected on click
+- ✅ Copies code to clipboard
+- ✅ Highlights lines with comments
+- ✅ Keyboard navigation
+- ✅ Authentication checks
+
+**Status**: Complete
+
+#### 12. CommentThread.spec.js
+**Location**: `tests/unit/CommentThread.spec.js`
+
+**Coverage**:
+- ✅ Renders thread messages
+- ✅ Shows resolved status
+- ✅ Reply functionality
+- ✅ Optimistic updates
+- ✅ Edit/delete
+- ✅ Resolve/unresolve
+- ✅ Error rollback
+
+**Status**: Complete
+
+## API Endpoints Required
+
+The following endpoints should be implemented in Laravel:
+
+### Comments
+- `POST /api/v1/comments` - Create comment
+- `PATCH /api/v1/comments/{id}` - Update comment
+- `DELETE /api/v1/comments/{id}` - Delete comment
+- `PATCH /api/v1/comments/{id}/resolve` - Resolve/unresolve comment
+
+### Reactions
+- `POST /api/v1/reactions` - Add reaction
+- `DELETE /api/v1/reactions/{id}` - Remove reaction
+
+### Posts
+- `POST /api/v1/posts` - Create post
+- `PUT /posts/{id}` - Update post (via Inertia)
+
+### Notifications
+- `PATCH /api/v1/notifications/{id}/read` - Mark as read
+- `PATCH /api/v1/notifications/read-all` - Mark all as read
+
+## Integration Steps
+
+### 1. Update Post/Show.vue Page
+
+Replace CodeSnippetCompact with CodeViewer and add InlineCommentPanel:
+
+```vue
+<template>
+  <div class="flex">
+    <div class="flex-1">
+      <CodeViewer
+        :snippet="codeSnippet"
+        :inline-comments-index="inlineCommentsIndex"
+        :is-authenticated="isAuthenticated"
+        @line-selected="handleLineSelected"
+      />
+    </div>
+    <InlineCommentPanel
+      :is-open="panelOpen"
+      :threads="threads"
+      :active-thread="activeThread"
+      @thread-selected="handleThreadSelected"
+    />
+  </div>
+</template>
 ```
 
-### PATCH /api/inline-comments/{id}
-Updates an inline comment. Body:
-```json
-{
-  "body": "Updated comment text"
-}
+### 2. Wire Up Event Handlers
+
+Use the `useCodeViewerEvents` composable:
+
+```vue
+<script setup>
+import { useCodeViewerEvents, useCommentApi } from '@/composables/useCodeViewerEvents';
+
+const { onLineSelected, emitLineSelected } = useCodeViewerEvents();
+const { createComment, updateComment, deleteComment } = useCommentApi();
+
+onLineSelected(async ({ snippetId, lineNumber, blockId }) => {
+  // Load thread, open panel, etc.
+});
+</script>
 ```
 
-### POST /api/comments
-Creates a general comment or reply. Body:
-```json
-{
-  "post_id": 1,
-  "parent_id": null, // or comment ID for replies
-  "body": "Comment text",
-  "is_inline": false
-}
+### 3. Add Real-time Updates (TODO)
+
+```javascript
+// In Post/Show.vue or composable
+Echo.channel(`post.${postId}`)
+  .listen('CommentCreated', (e) => {
+    // Update inline comments index
+  })
+  .listen('ThreadResolved', (e) => {
+    // Update thread status
+  });
 ```
 
-## Component Props & Events
+## Dependencies
 
-### CodeViewer
-**Props:**
-- `code: string` - Code text
-- `language: string` - Programming language
-- `inlineCommentsIndex?: Record<number, any[]>` - Comments indexed by line number
-- `isAuthenticated?: boolean`
+### Required Packages
+- ✅ `prismjs` - Already installed
+- ✅ `@inertiajs/vue3` - Already installed
+- ✅ `vue` - Already installed
+- ✅ `tailwindcss` - Already installed
 
-**Events:**
-- `line-selected: { line: number; comments: any[] }`
-
-### InlineCommentsPanel
-**Props:**
-- `selectedLine: number | null`
-- `comments: any[]`
-- `postId: number`
-- `isAuthenticated?: boolean`
-- `currentUserId?: number`
-
-**Events:**
-- `close`
-- `edit: (comment: any)`
-- `comment-added`
-
-### PostBlock
-**Props:**
-- `post: any`
-- `isAuthenticated?: boolean`
-
-**Events:**
-- `line-selected: { line: number; comments: any[]; snippetId: number }`
-
-## Styling
-
-- **Code Viewer**: VSCode-like dark theme (`#0d1117` background)
-- **Font Size**: `text-xs` (0.75rem) for code
-- **Line Height**: 24px (1.5rem)
-- **Responsive**: Mobile-first, panel collapses to bottom sheet on < 1024px
-
-## How to Run
-
-1. **Install dependencies:**
-   ```bash
-   composer install
-   npm install
-   ```
-
-2. **Run migrations:**
-   ```bash
-   php artisan migrate
-   ```
-
-3. **Seed database:**
-   ```bash
-   php artisan db:seed
-   ```
-
-4. **Start development servers:**
-   ```bash
-   # Terminal 1: Laravel
-   php artisan serve
-   
-   # Terminal 2: Vite
-   npm run dev
-   ```
-
-5. **Visit the sample post:**
-   - Navigate to `/posts/pr-add-payment-webhook-handler`
-   - Or find the post ID from the database and visit `/posts/{id}`
+### Optional Packages (for event bus)
+- Consider adding `mitt` if you prefer external event bus library
+- Currently using custom EventBus implementation
 
 ## Testing
 
-Run feature tests:
+Run tests with Vitest (needs setup):
+
 ```bash
-php artisan test --filter InlineCommentTest
-php artisan test --filter PostTest
+# Install Vitest if not already installed
+npm install -D vitest @vue/test-utils
+
+# Add to package.json scripts
+"test": "vitest"
 ```
 
-## Key Features Implemented
+## Known Issues / TODOs
 
-✅ Syntax highlighting with Shiki (VSCode-like theme)
-✅ Inline comments attached to specific code lines
-✅ Side-by-side inline comments panel (desktop)
-✅ Bottom sheet for mobile devices
-✅ General comments below post
-✅ Collapsible/expand behavior
-✅ Small-font code view (text-xs)
-✅ Line number gutter with clickable lines
-✅ Comment bubbles showing comment count
-✅ Optimistic UI updates
-✅ Reply support (1-level)
-✅ Author + timestamp for comments
-✅ Edit/Delete functionality
-✅ Keyboard accessibility
-✅ ARIA labels for accessibility
+1. **Post/Show.vue Integration**: Needs to be updated to use new CodeViewer component
+2. **Real-time Updates**: Echo/Pusher hooks are stubbed, need implementation
+3. **Profile Page**: Not yet updated (mentioned in requirements)
+4. **Vitest Setup**: Test files created but Vitest needs to be configured
+5. **TypeScript Errors**: Some type errors in CodeViewer.vue (non-blocking)
 
-## Sample Data
+## Next Steps
 
-The seeder creates:
-- 1 post: "PR: add payment webhook handler"
-- 1 PHP code snippet (~20 lines)
-- 3 inline comments on lines 4, 9, and 15
-- 2 general comments
-- 1 reply to a general comment
+1. ✅ Complete core components (CodeViewer, InlineCommentPanel, CommentThread)
+2. ✅ Create supporting components (FeedList, PostEditor, Reactions, Notifications)
+3. ✅ Create composables and tests
+4. ⏳ Update Post/Show.vue to use new components
+5. ⏳ Update Profile page
+6. ⏳ Implement backend API endpoints
+7. ⏳ Add real-time Echo listeners
+8. ⏳ Setup Vitest configuration
 
-## Next Steps (Optional Enhancements)
+## File Structure
 
-- [ ] Unit tests for Vue components (Vitest)
-- [ ] Support for multi-line inline comments (range selection)
-- [ ] Real-time updates with WebSockets
-- [ ] Markdown support in comments
-- [ ] Code suggestions/diffs
-- [ ] Resolve/unresolve comments
-- [ ] Email notifications
+```
+resources/js/
+├── Components/
+│   ├── CodeViewer.vue ✅
+│   ├── InlineCommentPanel.vue ✅
+│   ├── CommentThread.vue ✅
+│   ├── FeedList.vue ✅
+│   ├── PostEditor.vue ✅
+│   ├── Reactions.vue ✅
+│   └── NotificationsDropdown.vue ✅
+├── Pages/
+│   ├── Feed.vue ✅
+│   └── Posts/
+│       └── Show.vue ⏳ (needs integration)
+├── composables/
+│   └── useCodeViewerEvents.ts ✅
+└── utils/
+    └── prism-init.ts ✅ (exists)
 
+tests/
+└── unit/
+    ├── CodeViewer.spec.js ✅
+    └── CommentThread.spec.js ✅
+```
+
+## Usage Examples
+
+See `COMPONENTS_USAGE.md` for detailed usage examples and API documentation.

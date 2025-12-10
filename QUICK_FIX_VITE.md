@@ -41,3 +41,4 @@ docker compose exec app netstat -tuln | grep 517
 
 For now, use **Solution 1** (build assets) to get the app working immediately. Then set up Vite dev server later for development.
 
+

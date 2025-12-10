@@ -241,7 +241,7 @@
 
 <script setup lang="ts">
 import AppLayout from '@/Layouts/AppLayout.vue';
-import PostCard from '@/Components/PostCard.vue';
+import PostCard from '@/components/PostCard.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 

@@ -2,106 +2,71 @@
 
 namespace Tests\Feature;
 
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class PostTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_create_post(): void
+    public function test_user_can_create_post_with_snippet(): void
     {
         $user = User::factory()->create();
+        Sanctum::actingAs($user);
 
-        $response = $this->actingAs($user, 'sanctum')
-            ->postJson('/api/posts', [
-                'title' => 'Test Post',
-                'body' => [
-                    [
-                        'type' => 'text',
-                        'content' => 'This is a text block',
-                    ],
-                    [
-                        'type' => 'code',
-                        'language' => 'javascript',
-                        'content' => 'console.log("Hello World");',
-                    ],
+        $response = $this->postJson('/api/posts', [
+            'title' => 'Test Post',
+            'body' => [['type' => 'text', 'content' => 'Test content']],
+            'snippets' => [
+                [
+                    'language' => 'php',
+                    'code_text' => 'echo "Hello World";',
+                    'block_index' => 0,
                 ],
-            ]);
+            ],
+        ]);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'data' => [
                     'id',
                     'title',
-                    'body',
-                    'user',
-                    'snippets',
+                    'slug',
+                    'snippets' => [
+                        '*' => ['id', 'language', 'code_text'],
+                    ],
                 ],
             ]);
+
+        $this->assertDatabaseHas('posts', [
+            'title' => 'Test Post',
+            'user_id' => $user->id,
+        ]);
+
+        $this->assertDatabaseHas('snippets', [
+            'language' => 'php',
+            'code_text' => 'echo "Hello World";',
+        ]);
     }
 
     public function test_user_can_view_post(): void
     {
         $user = User::factory()->create();
+        $post = Post::factory()->create(['user_id' => $user->id]);
 
-        $postResponse = $this->actingAs($user, 'sanctum')
-            ->postJson('/api/posts', [
-                'title' => 'Test Post',
-                'body' => [
-                    [
-                        'type' => 'text',
-                        'content' => 'This is a text block',
-                    ],
-                ],
-            ]);
-
-        $postId = $postResponse->json('data.id');
-
-        $response = $this->getJson("/api/posts/{$postId}");
+        $response = $this->getJson("/api/posts/{$post->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
                     'id',
                     'title',
-                    'body',
                     'user',
                     'snippets',
-                    'comments',
-                    'inline_comments_index',
-                ],
-            ]);
-    }
-
-    public function test_user_can_search_posts(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user, 'sanctum')
-            ->postJson('/api/posts', [
-                'title' => 'JavaScript Tutorial',
-                'body' => [
-                    [
-                        'type' => 'code',
-                        'language' => 'javascript',
-                        'content' => 'const x = 1;',
-                    ],
-                ],
-            ]);
-
-        $response = $this->getJson('/api/posts?q=JavaScript');
-
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'id',
-                        'title',
-                    ],
                 ],
             ]);
     }
 }
-

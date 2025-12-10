@@ -1,66 +1,83 @@
 <template>
   <AppLayout>
-    <div class="feed-page">
+    <div class="feed-page p-6">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
-        <h1 class="text-3xl font-bold text-gray-100">PR Code Feed</h1>
+        <h1 class="text-3xl font-bold text-[#cccccc]">PR Code Feed</h1>
         <Link
           v-if="$page.props.auth?.user"
           href="/posts/create"
-          class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-sm hover:shadow-md font-medium"
+          class="px-4 py-2 bg-gradient-to-r from-[#007acc] to-purple-600 text-white rounded-lg hover:from-[#005a9e] hover:to-purple-700 transition-all shadow-sm hover:shadow-md font-medium"
         >
           + New Post
         </Link>
       </div>
 
-      <!-- Posts List -->
-      <div v-if="posts.length === 0" class="text-center py-12 text-gray-400">
-        <p class="text-lg mb-2">No posts yet</p>
-        <p class="text-sm">Be the first to share your code!</p>
-      </div>
-
-      <div v-else class="space-y-6">
-        <PostCard
-          v-for="post in posts"
-          :key="post.id"
-          :post="post"
-        />
-      </div>
-
-      <!-- Pagination (if needed) -->
-      <div v-if="links && links.length > 0" class="mt-8 flex justify-center">
-        <!-- Add pagination component here if needed -->
-      </div>
+      <!-- Feed List with Sorting and Infinite Scroll -->
+      <FeedList
+        :posts="posts"
+        :current-sort="currentSort"
+        :show-sorting="true"
+        :has-more="hasMore"
+        :total-count="totalCount"
+        :loading="loading"
+        @sort-changed="handleSortChange"
+        @load-more="handleLoadMore"
+      />
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import PostCard from '@/Components/PostCard.vue';
+import FeedList from '@/components/FeedList.vue';
 
-/**
- * Props expected from Laravel controller:
- * 
- * @prop {Array} posts - Array of post objects
- * @prop {Object} links - Pagination links (optional)
- * 
- * Post shape:
- * {
- *   id: number,
- *   author: { id, name, avatar_url, handle },
- *   title: string,
- *   body: string (HTML),
- *   code: { language: string, content: string },
- *   stats: { likes: number, comments: number, views: number },
- *   created_at: string (ISO date)
- * }
- */
-defineProps<{
+const props = defineProps<{
   posts?: any[];
+  currentSort?: 'recent' | 'top' | 'trending';
+  hasMore?: boolean;
+  totalCount?: number;
   links?: any;
 }>();
+
+const loading = ref(false);
+const currentSort = computed(() => props.currentSort || 'recent');
+
+function handleSortChange(sort: 'recent' | 'top' | 'trending') {
+  router.get('/feed', {
+    sort,
+    page: 1,
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['posts', 'currentSort', 'hasMore', 'totalCount'],
+  });
+}
+
+function handleLoadMore() {
+  if (loading.value || !props.hasMore) return;
+  
+  loading.value = true;
+  
+  // Get current page from URL or default to 1
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentPage = parseInt(urlParams.get('page') || '1', 10);
+  const nextPage = currentPage + 1;
+  
+  router.get('/feed', {
+    sort: currentSort.value,
+    page: nextPage,
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['posts', 'hasMore', 'totalCount'],
+    onFinish: () => {
+      loading.value = false;
+    },
+  });
+}
 </script>
 
 <style scoped>
@@ -68,4 +85,3 @@ defineProps<{
   min-height: calc(100vh - 200px);
 }
 </style>
-
