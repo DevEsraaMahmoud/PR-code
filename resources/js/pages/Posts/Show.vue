@@ -1,26 +1,26 @@
 <template>
     <AppLayout>
-        <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="p-6">
             <!-- Post Header -->
-            <div class="bg-gray-800 rounded-xl shadow-md p-8 mb-6 border border-gray-700">
+            <div class="bg-[#252526] rounded border border-[#3e3e42] p-6 mb-6">
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex-1">
-                        <h1 class="text-4xl font-bold text-gray-100 mb-4">{{ post?.title }}</h1>
+                        <h1 class="text-2xl font-bold text-[#cccccc] mb-4">{{ post?.title }}</h1>
                         <div class="flex items-center space-x-4 mb-4">
-                            <div class="flex items-center text-gray-400">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                            <div class="flex items-center text-[#858585]">
+                                <div class="w-10 h-10 bg-[#007acc] rounded-full flex items-center justify-center text-white font-semibold mr-3">
                                     {{ post.user?.name?.charAt(0).toUpperCase() || '?' }}
                                 </div>
                                 <div>
-                                    <p class="font-medium text-gray-100">{{ post.user?.name || 'Unknown User' }}</p>
-                                    <p class="text-sm text-gray-400">{{ post?.created_at ? formatDate(post.created_at) : '' }}</p>
+                                    <p class="font-medium text-[#cccccc]">{{ post.user?.name || 'Unknown User' }}</p>
+                                    <p class="text-sm text-[#858585]">{{ post?.created_at ? formatDate(post.created_at) : '' }}</p>
                                 </div>
                             </div>
                             <div v-if="post?.tags && post.tags.length > 0" class="flex flex-wrap gap-2">
                                 <span
                                     v-for="tag in post.tags"
                                     :key="tag.id"
-                                    class="px-2 py-1 text-xs bg-blue-900/30 text-blue-300 rounded-full"
+                                    class="px-2 py-1 text-xs bg-[#094771] text-[#4fc3f7] rounded"
                                 >
                                     {{ tag.name }}
                                 </span>
@@ -28,7 +28,7 @@
                         </div>
                     </div>
                     <div v-if="canEdit && post?.id" class="flex space-x-2">
-                        <Link :href="`/posts/${post.id}/edit`" class="px-4 py-2 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600">
+                        <Link :href="`/posts/${post.id}/edit`" class="px-4 py-2 text-sm bg-[#3e3e42] text-[#cccccc] rounded hover:bg-[#4e4e4e] transition-colors">
                             Edit
                         </Link>
                     </div>
@@ -36,17 +36,17 @@
             </div>
 
             <!-- Two Column Layout: Post Content + Inline Thread Sidebar -->
-            <div class="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6">
+            <div class="lg:grid lg:grid-cols-[1fr_380px] lg:gap-6">
                 <!-- Left Column: Post Content -->
                 <div class="space-y-6">
                     <!-- Render blocks in order - Single unified block -->
-                    <div v-if="postBlocks && postBlocks.length > 0" class="bg-gray-800 rounded-xl shadow-sm border border-gray-700 hover:shadow-md transition-shadow overflow-hidden">
+                    <div v-if="postBlocks && postBlocks.length > 0" class="bg-[#252526] rounded border border-[#3e3e42] overflow-hidden">
                         <div class="p-6 space-y-4">
                             <template v-for="(block, index) in postBlocks" :key="`block-${block.id || index}`">
                                 <!-- Text Block -->
                                 <div
                                     v-if="block.type === 'text' && block.content"
-                                    class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap leading-relaxed"
+                                    class="prose prose-lg prose-invert max-w-none text-[#cccccc] whitespace-pre-wrap leading-relaxed"
                                 >
                                     {{ block.content }}
                                 </div>
@@ -54,7 +54,7 @@
                                 <!-- Code Block -->
                                 <div
                                     v-else-if="block.type === 'code' && block.content"
-                                    class="-mx-6"
+                                    class="my-4"
                                 >
                                     <CodeSnippetCompact
                                         :code="block.content || ''"
@@ -65,25 +65,21 @@
                                         :is-feed="false"
                                         @line-clicked="handleLineClick"
                                     />
-                                    <!-- Debug: Show block info -->
-                                    <div v-if="false" class="text-xs text-gray-500 mt-2 px-6">
-                                        Block ID: {{ block.id }}, Type: {{ block.type }}, Index: {{ index }}
-                                    </div>
                                 </div>
                             </template>
                         </div>
                     </div>
 
                     <!-- Fallback: Old format - Single unified block -->
-                    <div v-else class="bg-gray-800 rounded-xl shadow-md border border-gray-700 overflow-hidden">
+                    <div v-else class="bg-[#252526] rounded border border-[#3e3e42] overflow-hidden">
                         <div class="p-6 space-y-4">
                             <!-- Rich text body -->
-                            <div v-if="postBodyHtml" class="prose prose-lg prose-invert max-w-none text-gray-300 whitespace-pre-wrap">
+                            <div v-if="postBodyHtml" class="prose prose-lg prose-invert max-w-none text-[#cccccc] whitespace-pre-wrap">
                                 {{ postBodyHtml }}
                             </div>
 
                             <!-- Code Block -->
-                            <div v-if="postCode && postCode.content && postCode.content.trim()" class="-mx-6">
+                            <div v-if="postCode && postCode.content && postCode.content.trim()" class="my-4">
                                 <CodeSnippetCompact
                                     :code="postCode.content"
                                     :language="postCode.language || 'text'"
@@ -98,7 +94,7 @@
                     </div>
 
                     <!-- Actions -->
-                    <div v-if="post?.id" class="bg-gray-800 rounded-xl shadow-md p-6 border border-gray-700">
+                    <div v-if="post?.id" class="bg-[#252526] rounded border border-[#3e3e42] p-4">
                         <div class="flex items-center gap-4">
                             <LikeButton
                                 :post-id="post.id"
@@ -109,7 +105,7 @@
                                 :post-id="post.id"
                                 :post-title="post.title || ''"
                             />
-                            <div class="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 ml-auto">
+                            <div class="flex items-center gap-1 text-sm text-[#858585] ml-auto">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -120,8 +116,8 @@
                     </div>
 
                     <!-- General Comments (only non-inline comments) -->
-                    <div class="bg-gray-800 rounded-xl shadow-md border border-gray-700 p-6">
-                        <h2 class="text-xl font-semibold text-gray-100 mb-4">Comments</h2>
+                    <div class="bg-[#252526] rounded border border-[#3e3e42] p-6">
+                        <h2 class="text-xl font-semibold text-[#cccccc] mb-4">Comments</h2>
                         <CommentList
                             :comments="generalComments"
                             :post-id="post?.id"
@@ -133,12 +129,21 @@
 
                 <!-- Right Column: Inline Thread Sidebar (Desktop) -->
                 <div class="hidden lg:block">
-                    <!-- Sidebar will be positioned fixed on the right -->
+                    <InlineThreadsPanel
+                        :inline-comments-index="inlineCommentsIndex"
+                        :active-thread="activeThread"
+                        :current-user-id="(page.props as any).auth?.user?.id"
+                        :can-resolve="canEdit || true"
+                        :post-id="post?.id"
+                        @thread-selected="handleThreadSelected"
+                        @thread-updated="handleThreadUpdated"
+                        @thread-resolved="handleThreadResolved"
+                    />
                 </div>
             </div>
         </div>
 
-        <!-- Inline Thread Sidebar -->
+        <!-- Inline Thread Sidebar (Mobile/Overlay) -->
         <InlineThreadSidebar
             :visible="sidebarVisible"
             :active-thread="activeThread"
@@ -151,14 +156,13 @@
 
         <!-- Inline Comment Popover -->
         <InlineCommentPopover
-            v-if="popoverVisible && selectedLine && activeThread"
+            v-if="popoverVisible && selectedLine"
             :visible="popoverVisible"
             :line-number="selectedLine"
-            :comments="getCommentsForLine(selectedLine, activeThread?.blockId || null)"
+            :comments="getCommentsForLine(selectedLine, activeThread?.blockId || selectedBlockId || null)"
             :position="popoverPosition"
             @close="closePopover"
             @submit-comment="handlePopoverSubmit"
-            @view-thread="handleViewThread"
         />
         
         <!-- Backdrop for popover (mobile) -->
@@ -173,12 +177,13 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import CodeSnippetCompact from '@/Components/CodeSnippetCompact.vue';
-import InlineThreadSidebar from '@/Components/InlineThreadSidebar.vue';
-import InlineCommentPopover from '@/Components/CodeBlock/InlineCommentPopover.vue';
-import CommentList from '@/Components/Comments/CommentList.vue';
-import LikeButton from '@/Components/Controls/LikeButton.vue';
-import ShareButton from '@/Components/Controls/ShareButton.vue';
+import CodeSnippetCompact from '@/components/CodeSnippetCompact.vue';
+import InlineThreadSidebar from '@/components/InlineThreadSidebar.vue';
+import InlineThreadsPanel from '@/components/InlineThreadsPanel.vue';
+import InlineCommentPopover from '@/components/CodeBlock/InlineCommentPopover.vue';
+import CommentList from '@/components/Comments/CommentList.vue';
+import LikeButton from '@/components/Controls/LikeButton.vue';
+import ShareButton from '@/components/Controls/ShareButton.vue';
 import { router, Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -469,6 +474,7 @@ const sidebarVisible = ref(false);
 const activeThread = ref<any>(null);
 const popoverVisible = ref(false);
 const selectedLine = ref<number | null>(null);
+const selectedBlockId = ref<number | string | null>(null);
 const popoverPosition = ref({ top: 0, left: 0 });
 
 // General comments (non-inline only)
@@ -480,6 +486,7 @@ const generalComments = computed(() => {
 
 async function handleLineClick({ lineNumber, blockId, postId }: { lineNumber: number; blockId: number | string | null; postId: number | string }) {
     selectedLine.value = lineNumber;
+    selectedBlockId.value = blockId;
     
     // Load thread from API to get latest comments (but don't open sidebar automatically)
     await loadThread(lineNumber, blockId, postId);
@@ -542,6 +549,15 @@ function handleViewThread() {
     sidebarVisible.value = true;
     // Optionally close popover when opening sidebar
     // popoverVisible.value = false;
+}
+
+function handleThreadSelected(thread: { lineNumber: number; blockId: number | string; postId: number | string }) {
+    // Load and set the selected thread
+    loadThread(thread.lineNumber, thread.blockId, thread.postId);
+    // Also show mobile sidebar if on mobile
+    if (window.innerWidth < 1024) {
+        sidebarVisible.value = true;
+    }
 }
 
 async function loadThread(lineNumber: number, blockId: number | string | null, postId: number | string) {
@@ -761,21 +777,29 @@ function getCommentsForLine(lineNumber: number | null, blockId: number | string 
 function closePopover() {
     popoverVisible.value = false;
     selectedLine.value = null;
+    selectedBlockId.value = null;
 }
 
 async function handlePopoverSubmit({ lineNumber, text }: { lineNumber: number; text: string }) {
-    if (!activeThread.value) return;
+    const blockId = activeThread.value?.blockId || selectedBlockId.value;
+    const postId = activeThread.value?.postId || props.post?.id;
+    
+    if (!blockId || !postId) {
+        console.error('Cannot submit comment: missing blockId or postId');
+        return;
+    }
     
     try {
-        await router.post(`/posts/${activeThread.value.postId}/blocks/${activeThread.value.blockId}/threads`, {
+        await router.post(`/posts/${postId}/blocks/${blockId}/threads`, {
             line: lineNumber,
             content: text,
         }, {
             preserveScroll: true,
             onSuccess: () => {
                 // Reload thread to show the new comment in both popover and sidebar
-                loadThread(lineNumber, activeThread.value!.blockId, activeThread.value!.postId);
-                // Keep popover open to show the new comment
+                loadThread(lineNumber, blockId, postId);
+                // Reload page to refresh inline comments index
+                router.reload({ only: ['post'] });
             },
             onError: (errors) => {
                 console.error('Failed to submit comment:', errors);

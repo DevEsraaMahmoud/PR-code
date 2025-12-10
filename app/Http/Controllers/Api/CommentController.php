@@ -3,198 +3,135 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreCommentRequest;
-use App\Http\Resources\CommentResource;
-use App\Services\CommentService;
-use Illuminate\Http\JsonResponse;
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\Snippet;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Notification;
 
 class CommentController extends Controller
 {
-    public function __construct(
-        private CommentService $commentService
-    ) {
+    /**
+     * Store a new comment
+     */
+    public function store(Request $request, Post $post): JsonResponse
+    {
+        $validated = $request->validate([
+            'body' => 'required|string|max:5000',
+            'snippet_id' => 'nullable|exists:snippets,id',
+            'parent_id' => 'nullable|exists:comments,id',
+            'start_line' => 'nullable|integer|min:1',
+            'end_line' => 'nullable|integer|min:1|gte:start_line',
+            'is_inline' => 'boolean',
+        ]);
+
+        $user = $request->user();
+
+        $comment = Comment::create([
+            'user_id' => $user->id,
+            'post_id' => $post->id,
+            'snippet_id' => $validated['snippet_id'] ?? null,
+            'parent_id' => $validated['parent_id'] ?? null,
+            'body' => $validated['body'],
+            'start_line' => $validated['start_line'] ?? null,
+            'end_line' => $validated['end_line'] ?? null,
+            'is_inline' => $validated['is_inline'] ?? false,
+        ]);
+
+        $comment->load(['user:id,name,avatar_url', 'replies']);
+
+        // TODO: Send notification to post author and mentioned users
+        // Notification::send(...);
+
+        return response()->json([
+            'message' => 'Comment created successfully',
+            'comment' => $comment,
+        ], 201);
     }
 
     /**
-     * Display comments for a post or snippet.
+     * Update a comment
      */
-    public function index(Request $request): JsonResponse
+    public function update(Request $request, Comment $comment): JsonResponse
     {
-        $postId = $request->query('post_id');
-        $snippetId = $request->query('snippet_id');
-        $perPage = (int) ($request->query('per_page', 20));
+        $this->authorize('update', $comment);
 
-        if ($postId) {
-            try {
-                $result = $this->commentService->getCommentsByPost((int) $postId, $perPage);
-                return response()->json([
-                    'data' => CommentResource::collection($result['comments']),
-                    'meta' => [
-                        'current_page' => $result['comments']->currentPage(),
-                        'last_page' => $result['comments']->lastPage(),
-                        'per_page' => $result['comments']->perPage(),
-                        'total' => $result['comments']->total(),
-                    ],
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Failed to fetch comments',
-                    'error' => $e->getMessage(),
-                ], 404);
-            }
+        $validated = $request->validate([
+            'body' => 'required|string|max:5000',
+        ]);
+
+        $comment->update(['body' => $validated['body']]);
+        $comment->load(['user:id,name,avatar_url', 'replies']);
+
+        return response()->json([
+            'message' => 'Comment updated successfully',
+            'comment' => $comment,
+        ]);
+    }
+
+    /**
+     * Delete a comment
+     */
+    public function destroy(Comment $comment): JsonResponse
+    {
+        $this->authorize('delete', $comment);
+
+        $comment->delete();
+
+        return response()->json([
+            'message' => 'Comment deleted successfully',
+        ]);
+    }
+
+    /**
+     * Resolve/unresolve a comment
+     */
+    public function resolve(Request $request, Comment $comment): JsonResponse
+    {
+        $user = $request->user();
+
+        // Only post author or comment author can resolve
+        if ($comment->post->user_id !== $user->id && $comment->user_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        if ($comment->resolved) {
+            $comment->unresolve();
+            $action = 'unresolved';
+        } else {
+            $comment->resolve($user);
+            $action = 'resolved';
+        }
+
+        return response()->json([
+            'message' => "Comment {$action}",
+            'comment' => $comment->fresh(),
+        ]);
+    }
+
+    /**
+     * Get comments for a post
+     */
+    public function index(Request $request, Post $post): JsonResponse
+    {
+        $snippetId = $request->query('snippet_id');
+        $inlineOnly = $request->boolean('inline_only');
+
+        $query = Comment::where('post_id', $post->id)
+            ->whereNull('parent_id')
+            ->with(['user:id,name,avatar_url', 'replies.user:id,name,avatar_url']);
 
         if ($snippetId) {
-            try {
-                $result = $this->commentService->getCommentsBySnippet((int) $snippetId);
-                return response()->json([
-                    'data' => CommentResource::collection($result['comments']),
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Failed to fetch comments',
-                    'error' => $e->getMessage(),
-                ], 404);
-            }
+            $query->where('snippet_id', $snippetId);
         }
 
-        return response()->json([
-            'message' => 'post_id or snippet_id is required',
-        ], 422);
-    }
-
-    /**
-     * Store a newly created comment (inline or regular).
-     */
-    public function store(StoreCommentRequest $request): JsonResponse
-    {
-        try {
-            $result = $this->commentService->createComment($request->validated(), $request->user()->id);
-
-            return response()->json([
-                'data' => new CommentResource($result['comment']),
-                'message' => 'Comment created successfully',
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create comment',
-                'error' => $e->getMessage(),
-            ], 422);
+        if ($inlineOnly) {
+            $query->where('is_inline', true);
         }
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): JsonResponse
-    {
-        // Not typically needed, but keeping for API consistency
-        return response()->json([
-            'message' => 'Use index with post_id or snippet_id parameter',
-        ], 400);
-    }
+        $comments = $query->orderBy('created_at', 'desc')->paginate(20);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(StoreCommentRequest $request, string $id): JsonResponse
-    {
-        try {
-            $result = $this->commentService->updateComment((int) $id, $request->validated(), $request->user()->id);
-
-            return response()->json([
-                'data' => new CommentResource($result['comment']),
-                'message' => 'Comment updated successfully',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to update comment',
-                'error' => $e->getMessage(),
-            ], 403);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Request $request, string $id): JsonResponse
-    {
-        try {
-            $this->commentService->deleteComment((int) $id, $request->user()->id);
-
-            return response()->json([
-                'message' => 'Comment deleted successfully',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to delete comment',
-                'error' => $e->getMessage(),
-            ], 403);
-        }
-    }
-
-    /**
-     * Toggle like on a comment.
-     */
-    public function toggleLike(Request $request, string $id): JsonResponse
-    {
-        try {
-            $result = $this->commentService->toggleLike((int) $id, $request->user()->id);
-
-            return response()->json([
-                'data' => $result,
-                'message' => $result['liked'] ? 'Comment liked' : 'Comment unliked',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to toggle like',
-                'error' => $e->getMessage(),
-            ], 422);
-        }
-    }
-
-    /**
-     * Store a new inline comment for a post.
-     */
-    public function storeInlineComment(StoreCommentRequest $request, string $id): JsonResponse
-    {
-        try {
-            $data = $request->validated();
-            $data['post_id'] = (int) $id;
-            $data['is_inline'] = true;
-
-            $result = $this->commentService->createComment($data, $request->user()->id);
-
-            return response()->json([
-                'data' => new CommentResource($result['comment']),
-                'message' => 'Inline comment created successfully',
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create inline comment',
-                'error' => $e->getMessage(),
-            ], 422);
-        }
-    }
-
-    /**
-     * Update an inline comment.
-     */
-    public function updateInlineComment(StoreCommentRequest $request, string $id): JsonResponse
-    {
-        try {
-            $result = $this->commentService->updateComment((int) $id, $request->validated(), $request->user()->id);
-
-            return response()->json([
-                'data' => new CommentResource($result['comment']),
-                'message' => 'Inline comment updated successfully',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to update inline comment',
-                'error' => $e->getMessage(),
-            ], 403);
-        }
+        return response()->json($comments);
     }
 }

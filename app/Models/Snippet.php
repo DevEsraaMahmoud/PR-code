@@ -29,4 +29,9 @@ class Snippet extends Model
     {
         return $this->hasMany(Comment::class)->orderBy('start_line');
     }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(SnippetVersion::class)->orderBy('version_number', 'desc');
+    }
 }

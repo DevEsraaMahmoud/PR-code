@@ -2,80 +2,75 @@
 
 namespace Tests\Feature;
 
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Snippet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class CommentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_create_comment(): void
+    public function test_user_can_add_inline_comment(): void
     {
         $user = User::factory()->create();
-        $post = Post::factory()->create(['user_id' => $user->id]);
-        $snippet = Snippet::factory()->create([
-            'post_id' => $post->id,
-            'code_text' => "line1\nline2\nline3",
-            'language' => 'javascript',
-            'block_index' => 0,
-        ]);
+        $post = Post::factory()->create();
+        $snippet = Snippet::factory()->create(['post_id' => $post->id]);
 
-        $response = $this->actingAs($user, 'sanctum')
-            ->postJson('/api/comments', [
-                'snippet_id' => $snippet->id,
-                'start_line' => 1,
-                'end_line' => 2,
-                'body' => 'This is a comment',
-            ]);
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson("/api/posts/{$post->id}/comments", [
+            'body' => 'Great code!',
+            'snippet_id' => $snippet->id,
+            'start_line' => 5,
+            'end_line' => 5,
+            'is_inline' => true,
+        ]);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'data' => [
+                'comment' => [
                     'id',
-                    'snippet_id',
-                    'start_line',
-                    'end_line',
                     'body',
-                    'user',
+                    'start_line',
+                    'is_inline',
                 ],
             ]);
+
+        $this->assertDatabaseHas('comments', [
+            'post_id' => $post->id,
+            'snippet_id' => $snippet->id,
+            'start_line' => 5,
+            'is_inline' => true,
+        ]);
     }
 
-    public function test_user_can_view_comments(): void
+    public function test_user_can_resolve_comment(): void
     {
         $user = User::factory()->create();
         $post = Post::factory()->create(['user_id' => $user->id]);
-        $snippet = Snippet::factory()->create([
+        $comment = Comment::factory()->create([
             'post_id' => $post->id,
-            'code_text' => "line1\nline2\nline3",
-            'language' => 'javascript',
-            'block_index' => 0,
+            'resolved' => false,
         ]);
 
-        $this->actingAs($user, 'sanctum')
-            ->postJson('/api/comments', [
-                'snippet_id' => $snippet->id,
-                'start_line' => 1,
-                'end_line' => 2,
-                'body' => 'This is a comment',
-            ]);
+        Sanctum::actingAs($user);
 
-        $response = $this->getJson("/api/comments?snippet_id={$snippet->id}");
+        $response = $this->postJson("/api/comments/{$comment->id}/resolve");
 
         $response->assertStatus(200)
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'id',
-                        'body',
-                        'start_line',
-                        'end_line',
-                    ],
+            ->assertJson([
+                'comment' => [
+                    'resolved' => true,
                 ],
             ]);
+
+        $this->assertDatabaseHas('comments', [
+            'id' => $comment->id,
+            'resolved' => true,
+        ]);
     }
 }
-

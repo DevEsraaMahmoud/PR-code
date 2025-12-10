@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     protected $policies = [
         \App\Models\Post::class => PostPolicy::class,
+        \App\Models\Comment::class => \App\Policies\CommentPolicy::class,
     ];
 
     /**

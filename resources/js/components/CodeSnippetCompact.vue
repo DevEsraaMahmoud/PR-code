@@ -1,39 +1,72 @@
 <template>
   <div
     v-if="code && code.trim()"
-    class="code-snippet-compact relative bg-[#0b1220] rounded-lg border border-gray-700 overflow-hidden"
+    class="code-snippet-compact relative bg-[#1e1e1e] rounded-lg border border-[#3e3e42] overflow-hidden mx-auto"
     :class="{ 
-      'max-h-[220px]': isFeed,
-      'text-[10px] sm:text-xs': isFeed,
-      'rounded-lg sm:rounded-lg': true
+      'max-h-[180px]': isFeed,
+      'text-[9px]': isFeed,
+      'rounded-lg sm:rounded-lg': true,
+      'max-w-full': isFeed,
+      'max-w-4xl': !isFeed,
     }"
   >
+    <!-- Code Header with Copy Button -->
+    <div class="flex items-center justify-between px-3 py-2 bg-[#252526] border-b border-[#3e3e42]">
+      <div class="flex items-center gap-2">
+        <span v-if="language && language !== 'text'" class="text-[10px] font-medium text-[#858585] uppercase">
+          {{ language }}
+        </span>
+        <span class="text-[10px] text-[#858585]">
+          {{ codeLines.length }} {{ codeLines.length === 1 ? 'line' : 'lines' }}
+        </span>
+      </div>
+      <button
+        @click.stop="copyCode"
+        class="flex items-center gap-1.5 px-2 py-1 text-[10px] text-[#858585] hover:text-[#cccccc] hover:bg-[#3e3e42] rounded transition-colors"
+        :title="copied ? 'Copied!' : 'Copy code'"
+      >
+        <svg v-if="!copied" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>{{ copied ? 'Copied' : 'Copy' }}</span>
+      </button>
+    </div>
+
     <!-- Code Container -->
     <div
       class="code-container overflow-x-auto"
-      :class="{ 'max-h-[220px] overflow-y-hidden': isFeed && !expanded }"
-      :style="{ 'mask-image': isFeed && !expanded ? 'linear-gradient(to bottom, black 0%, black 85%, transparent 100%)' : 'none' }"
+      :class="{ 'max-h-[180px] overflow-y-hidden': isFeed && !expanded }"
+      :style="{ 'mask-image': isFeed && !expanded ? 'linear-gradient(to bottom, black 0%, black 70%, rgba(0,0,0,0.5) 85%, transparent 100%)' : 'none' }"
     >
-      <pre class="m-0 p-0 text-xs font-mono" style="line-height: 1.35;"><code class="block">
+      <pre class="m-0 p-0 font-mono" :class="{ 'text-[9px]': isFeed, 'text-xs': !isFeed }" style="line-height: 1.2;"><code class="block">
         <div
           v-for="(line, index) in codeLines"
           :key="`line-${index + 1}`"
           :data-line-number="index + 1"
-          class="code-line flex items-start hover:bg-gray-800/40 transition-all border-l-2"
+          class="code-line flex items-start hover:bg-[#2a2d2e] transition-all relative"
           :class="{
-            'bg-blue-900/30 border-blue-500': selectedLine === index + 1,
-            'border-yellow-500/70 bg-yellow-900/30': getCommentCount(index + 1) > 0 && selectedLine !== index + 1,
-            'border-transparent hover:border-blue-500/50': getCommentCount(index + 1) === 0 && selectedLine !== index + 1,
+            'bg-[#094771]': selectedLine === index + 1,
+            'bg-[#3f3f00]': getCommentCount(index + 1) > 0 && selectedLine !== index + 1,
+            'has-comments': getCommentCount(index + 1) > 0,
           }"
           :style="getCommentCount(index + 1) > 0 && selectedLine !== index + 1 ? { 
             'border-left-width': '3px',
-            'border-left-color': 'rgb(234 179 8 / 0.7)',
-            'background-color': 'rgb(113 63 18 / 0.3)'
+            'border-left-color': 'rgb(234 179 8)',
+            'background-color': 'rgb(113 63 18 / 0.25)',
+            'box-shadow': 'inset 3px 0 0 rgb(234 179 8 / 0.6)'
+          } : selectedLine === index + 1 ? {
+            'border-left-width': '3px',
+            'border-left-color': 'rgb(0 122 204)',
+            'box-shadow': 'inset 3px 0 0 rgb(0 122 204 / 0.6)'
           } : {}"
         >
           <!-- Line Number Column -->
           <div
-            class="line-number-column flex-shrink-0 px-3 py-0 text-gray-400 hover:text-gray-300 text-right select-none min-w-[3.5rem] cursor-pointer group relative"
+            class="line-number-column flex-shrink-0 px-3 py-0 text-[#858585] hover:text-[#cccccc] text-right select-none min-w-[3rem] cursor-pointer group relative bg-[#1e1e1e] border-r border-[#3e3e42]"
+            style="line-height: 1.2; font-size: 0.75rem;"
             :aria-label="`Line ${index + 1}${getCommentCount(index + 1) > 0 ? `, ${getCommentCount(index + 1)} comment${getCommentCount(index + 1) > 1 ? 's' : ''}` : ''}`"
             role="button"
             tabindex="0"
@@ -41,17 +74,23 @@
             @keydown.enter="handleLineClick(index + 1)"
             @keydown.space.prevent="handleLineClick(index + 1)"
           >
-            <span class="inline-flex items-center gap-1.5">
-              <span class="text-xs">{{ index + 1 }}</span>
-              <!-- Comment Badge -->
+            <span class="inline-flex items-center gap-1">
+              <span style="font-size: 0.75rem;">{{ index + 1 }}</span>
+              <!-- Comment Indicator Dot -->
               <span
                 v-if="getCommentCount(index + 1) > 0"
-                class="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1.5 rounded-full bg-yellow-500 hover:bg-yellow-400 text-white text-[10px] font-bold transition-colors shadow-md ring-2 ring-yellow-400/50"
+                class="inline-flex items-center justify-center min-w-[14px] h-[14px] px-0.5 rounded-full bg-yellow-500 hover:bg-yellow-400 text-white text-[8px] font-bold transition-colors shadow-sm"
                 :aria-label="`${getCommentCount(index + 1)} comment${getCommentCount(index + 1) > 1 ? 's' : ''} on this line`"
                 title="Click to view comments"
               >
                 {{ getCommentCount(index + 1) }}
               </span>
+              <!-- Small indicator dot for lines with comments -->
+              <span
+                v-if="getCommentCount(index + 1) > 0"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-yellow-500/80 rounded-r"
+                :aria-label="`Line has comments`"
+              ></span>
               <!-- Hover indicator -->
               <span v-else class="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 text-xs">+</span>
             </span>
@@ -59,8 +98,12 @@
           
           <!-- Code Content -->
           <div
-            class="code-content flex-1 px-4 py-0 text-gray-100 overflow-x-auto text-sm"
-            style="line-height: 1.35;"
+            class="code-content flex-1 px-3 py-0 text-[#cccccc] overflow-x-auto"
+            :class="{
+              'text-[9px]': isFeed,
+              'text-xs': !isFeed,
+            }"
+            style="line-height: 1.2; white-space: pre; word-break: normal;"
             v-html="line"
           ></div>
         </div>
@@ -69,15 +112,15 @@
 
     <!-- Expand Button (Feed only) -->
     <div
-      v-if="isFeed && !expanded && codeLines.length > 8"
-      class="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-[#0b1220] via-[#0b1220]/95 to-transparent flex items-center justify-center z-10"
+      v-if="isFeed && !expanded && codeLines.length > 6"
+      class="absolute bottom-0 left-0 right-0 px-4 py-2.5 bg-gradient-to-t from-[#1e1e1e] via-[#1e1e1e]/98 to-transparent flex items-center justify-center z-10 pointer-events-none"
     >
       <button
         @click.stop="expanded = true"
-        class="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors bg-[#0b1220]/80 px-3 py-1.5 rounded-md border border-blue-500/30 hover:border-blue-400/50 hover:bg-[#0b1220]"
+        class="text-[10px] text-[#007acc] hover:text-[#4fc3f7] font-medium transition-colors bg-[#1e1e1e]/90 px-3 py-1 rounded border border-[#007acc]/40 hover:border-[#007acc]/60 hover:bg-[#252526] pointer-events-auto shadow-lg"
         aria-label="Expand code snippet"
       >
-        Show full code ({{ codeLines.length }} lines) →
+        Show more ({{ codeLines.length - 6 }} more lines) ↓
       </button>
     </div>
   </div>
@@ -102,6 +145,7 @@ const emit = defineEmits<{
 
 const expanded = ref(false);
 const selectedLine = ref<number | null>(null);
+const copied = ref(false);
 
 const normalizedLanguage = computed(() => {
   const lang = (props.language || 'text').toLowerCase();
@@ -164,6 +208,35 @@ function handleLineClick(lineNumber: number) {
   }, 300);
 }
 
+async function copyCode() {
+  try {
+    await navigator.clipboard.writeText(props.code);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy code:', err);
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = props.code;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      copied.value = true;
+      setTimeout(() => {
+        copied.value = false;
+      }, 2000);
+    } catch (fallbackErr) {
+      console.error('Fallback copy failed:', fallbackErr);
+    }
+    document.body.removeChild(textArea);
+  }
+}
+
 // Watch for prop changes
 watch(() => props.code, () => {
   expanded.value = false;
@@ -173,70 +246,139 @@ watch(() => props.code, () => {
 <style scoped>
 .code-snippet-compact {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.code-container {
+  max-width: 100%;
+  background-color: #1e1e1e;
+}
+
+.code-line {
+  min-height: 1.2rem;
+  background-color: #1e1e1e;
+}
+
+.code-line:hover {
+  background-color: #2a2d2e;
+}
+
+.code-line.has-comments {
+  position: relative;
+}
+
+.code-line.has-comments::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: rgb(234 179 8);
+  opacity: 0.8;
+  z-index: 1;
 }
 
 .line-number-column {
   user-select: none;
+  background-color: #1e1e1e;
 }
 
 .code-content :deep(.token) {
   color: inherit;
 }
 
-/* Prism.js theme adjustments for dark background */
+/* Prism.js theme - VS Code Dark+ style */
 .code-content :deep(.token.comment),
 .code-content :deep(.token.prolog),
 .code-content :deep(.token.doctype),
 .code-content :deep(.token.cdata) {
   color: #6a9955;
+  font-style: italic;
 }
 
 .code-content :deep(.token.punctuation) {
   color: #d4d4d4;
 }
 
-.code-content :deep(.token.property),
-.code-content :deep(.token.tag),
-.code-content :deep(.token.boolean),
-.code-content :deep(.token.number),
-.code-content :deep(.token.constant),
-.code-content :deep(.token.symbol),
-.code-content :deep(.token.deleted) {
+/* Tags - Light Blue */
+.code-content :deep(.token.tag) {
   color: #569cd6;
 }
 
-.code-content :deep(.token.selector),
+/* Attributes - Orange */
 .code-content :deep(.token.attr-name),
-.code-content :deep(.token.string),
-.code-content :deep(.token.char),
-.code-content :deep(.token.builtin),
-.code-content :deep(.token.inserted) {
+.code-content :deep(.token.selector .token.attr-name) {
   color: #ce9178;
 }
 
-.code-content :deep(.token.operator),
-.code-content :deep(.token.entity),
-.code-content :deep(.token.url),
-.code-content :deep(.language-css .token.string),
-.code-content :deep(.style .token.string) {
-  color: #d4d4d4;
+/* Attribute Values - White/Default */
+.code-content :deep(.token.attr-value),
+.code-content :deep(.token.string) {
+  color: #ce9178;
 }
 
-.code-content :deep(.token.atrule),
-.code-content :deep(.token.attr-value),
-.code-content :deep(.token.keyword) {
+/* URLs - Underlined */
+.code-content :deep(.token.url),
+.code-content :deep(.token.string a),
+.code-content :deep(a[href]) {
+  text-decoration: underline;
+  color: #ce9178;
+}
+
+/* Property names */
+.code-content :deep(.token.property) {
+  color: #9cdcfe;
+}
+
+/* Keywords - Purple */
+.code-content :deep(.token.keyword),
+.code-content :deep(.token.atrule) {
   color: #c586c0;
 }
 
+/* Numbers, Booleans, Constants - Light Blue */
+.code-content :deep(.token.number),
+.code-content :deep(.token.boolean),
+.code-content :deep(.token.constant),
+.code-content :deep(.token.symbol) {
+  color: #569cd6;
+}
+
+/* Functions - Yellow */
 .code-content :deep(.token.function),
 .code-content :deep(.token.class-name) {
   color: #dcdcaa;
 }
 
-.code-content :deep(.token.regex),
-.code-content :deep(.token.important),
+/* Operators */
+.code-content :deep(.token.operator),
+.code-content :deep(.token.entity) {
+  color: #d4d4d4;
+}
+
+/* Variables */
 .code-content :deep(.token.variable) {
+  color: #9cdcfe;
+}
+
+/* Regex */
+.code-content :deep(.token.regex) {
   color: #d16969;
+}
+
+/* Builtin */
+.code-content :deep(.token.builtin) {
+  color: #4ec9b0;
+}
+
+/* Inserted/Deleted */
+.code-content :deep(.token.inserted) {
+  color: #ce9178;
+}
+
+.code-content :deep(.token.deleted) {
+  color: #569cd6;
 }
 </style>
 

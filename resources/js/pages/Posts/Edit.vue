@@ -1,10 +1,10 @@
 <template>
     <AppLayout>
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl font-bold text-gray-100 mb-8">Edit Post</h1>
-            <form @submit.prevent="submit" class="bg-gray-800 rounded-xl shadow-md p-8 border border-gray-700">
+        <div class="p-6 max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-[#cccccc] mb-6">Edit Post</h1>
+            <form @submit.prevent="submit" class="bg-[#252526] rounded border border-[#3e3e42] p-6">
                 <div class="mb-6">
-                    <label for="title" class="block text-sm font-medium text-gray-300 mb-2">
+                    <label for="title" class="block text-sm font-medium text-[#cccccc] mb-2">
                         Title
                     </label>
                     <input
@@ -12,27 +12,27 @@
                         v-model="form.title"
                         type="text"
                         required
-                        class="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        class="w-full px-4 py-2 border border-[#3e3e42] rounded bg-[#1e1e1e] text-[#cccccc] placeholder-[#858585] focus:ring-1 focus:ring-[#007acc] focus:border-[#007acc] transition-all"
                         placeholder="Enter post title..."
                     />
-                    <div v-if="errors.title" class="mt-1 text-sm text-red-400">{{ errors.title }}</div>
+                    <div v-if="errors?.title" class="mt-1 text-sm text-red-400">{{ errors.title }}</div>
                 </div>
 
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-4">
-                        <label class="block text-sm font-medium text-gray-300">Content</label>
+                        <label class="block text-sm font-medium text-[#cccccc]">Content</label>
                         <div class="space-x-2">
                             <button
                                 type="button"
                                 @click="addTextBlock"
-                                class="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+                                class="px-3 py-1.5 text-sm bg-[#3e3e42] text-[#cccccc] rounded hover:bg-[#4e4e4e] transition-colors"
                             >
                                 + Text
                             </button>
                             <button
                                 type="button"
                                 @click="addCodeBlock"
-                                class="px-3 py-1 text-sm bg-blue-900/30 text-blue-300 rounded-lg hover:bg-blue-900/50 transition-colors"
+                                class="px-3 py-1.5 text-sm bg-[#094771] text-[#4fc3f7] rounded hover:bg-[#005a9e] transition-colors"
                             >
                                 + Code
                             </button>
@@ -55,11 +55,11 @@
                     <button
                         type="submit"
                         :disabled="processing"
-                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50"
+                        class="px-6 py-2 bg-[#007acc] text-white font-semibold rounded hover:bg-[#005a9e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {{ processing ? 'Updating...' : 'Update Post' }}
                     </button>
-                    <Link :href="`/posts/${post.id}`" class="px-6 py-3 bg-gray-700 text-gray-300 font-semibold rounded-lg hover:bg-gray-600 transition-colors">
+                    <Link :href="`/posts/${post.id}`" class="px-6 py-2 bg-[#3e3e42] text-[#cccccc] font-semibold rounded hover:bg-[#4e4e4e] transition-colors">
                         Cancel
                     </Link>
                 </div>
@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import CodeBlockEditor from '@/Components/CodeBlockEditor.vue';
+import CodeBlockEditor from '@/components/CodeBlockEditor.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{

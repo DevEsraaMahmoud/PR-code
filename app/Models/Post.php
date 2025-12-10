@@ -72,6 +72,16 @@ class Post extends Model
         return $this->morphMany(Like::class, 'likeable');
     }
 
+    public function reactions(): MorphMany
+    {
+        return $this->morphMany(Reaction::class, 'reactable');
+    }
+
+    public function bookmarks(): MorphMany
+    {
+        return $this->morphMany(Bookmark::class, 'bookmarkable');
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

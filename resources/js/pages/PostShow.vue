@@ -108,11 +108,11 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import InlineCommentsLayer from '@/Components/CodeBlock/InlineCommentsLayer.vue';
-import CommentList from '@/Components/Comments/CommentList.vue';
-import LikeButton from '@/Components/Controls/LikeButton.vue';
-import ShareButton from '@/Components/Controls/ShareButton.vue';
-import FollowButton from '@/Components/Controls/FollowButton.vue';
+import InlineCommentsLayer from '@/components/CodeBlock/InlineCommentsLayer.vue';
+import CommentList from '@/components/Comments/CommentList.vue';
+import LikeButton from '@/components/Controls/LikeButton.vue';
+import ShareButton from '@/components/Controls/ShareButton.vue';
+import FollowButton from '@/components/Controls/FollowButton.vue';
 
 const page = usePage();
 
